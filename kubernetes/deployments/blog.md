@@ -188,5 +188,5 @@ That's it. Thank you for reading this blog.
 - [LabelSelector in Kubernetes](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#labelselector-v1-meta)
 - [Assigning Pods to Nodes](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/)
 - [Kubernetes ReplicationController]((https://kubernetes.io/docs/concepts/workloads/controllers/replicationcontroller/))
-- [Updating A Deployment in Kubernetes]([Kubernetes Deployments](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#updating-a-deployment))
+- [Kubernetes Deployments](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#updating-a-deployment))
 

@@ -118,7 +118,7 @@ The `affinity` field inside the `.spec.template.spec` allows you to specify whic
 **As shown in the following picture, the ideal scenario of running a Deployment is running multiple replicas
 in different nodes in different zones, and avoid running multiple replicas in the same node**
 
-[The Ideal Scenario of Running A Deployment](https://github.com/aaronzhuo1990/blogs/blob/master/kubernetes/deployments/k8s-ideal-scenario-of-running-deployment.png)
+![alt text](https://github.com/aaronzhuo1990/blogs/blob/master/kubernetes/deployments/k8s-ideal-scenario-of-running-deployment.png "Ideal Scenario of Running A Deployment")
 
 You can utilize `.template.spec.affinity` to achieve this goal. Kubernetes provides `nodeAffinity` for you to constrain which nodes to run your Pods based on node labels. It also provides `podAffinity` and `podAntiAffinity` for you to specify inter-pod affinity. The official explanation of `podAffinity` and `podAntiAffinity` is "Inter-pod affinity and anti-affinity allow you to constrain which nodes your pod is eligible to be scheduled based on labels on pods that are already running on the node rather than based on labels on nodes." You can check
 [this doc](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/) for more details about node/pod affinity.
@@ -164,7 +164,7 @@ is used to run the user micro-service. The replicas share the storage and each o
 **One important principle that you should follow is: DO NOT add anything stateful to any replica of any Deployment.
 You should keep this in mind and review this principle whenever you make a change to your Deployments.**
 Some typical mistakes that I have made are: 1. Stick shared data to each Pod inside a Deployment;
-2. Run cron jobs on a Deployment that has only a single Pod.
+1. Run cron jobs on a Deployment that has only a single Pod.
 
 The following picture demonstrates the first case. From the picture you can see that Nginx default caching system uses local disk to store cache, and each Nginx replica maintain its own cache. This causes two problems: 1. A Nginx replica will lose its cache whenever it restarts. 2. the whole cashing system is low efficiency as a page request needs to be served in all the replicas in order to get itself "fully" cached.
 The root cause was that I stored page cache to each Nginx Pod, while the cache is supposed to be stored in a place where it can be shared among all the Nginx Pods. 

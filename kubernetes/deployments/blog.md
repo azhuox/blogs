@@ -9,7 +9,7 @@ What is included in this blog:
  
 ## prerequisites
 I recommend you understanding Kubernetes Pods before reading this blog. You can check
-[this doc](https://kubernetes.io/docs/concepts/workloads/pods/pod/) for details about Kubernetes Pods.
+[this doc](https://kubernetes.io/docs/concepts/workloads/pods/pod/ "Pods in Kubernetes") for details about Kubernetes Pods.
 
 ## What Is A Deployment
 
@@ -85,7 +85,7 @@ The `.spec.selector` is used for the Deployment to find which pods to manage. In
 `app: nginx && env: demo` defined in `.sepc.selector.matchLabels` to find the pods that have labels
 `{app: nginx, env: demo}` (defined in `.spec.template.metadata.labels`). `.sepc.selector.matchLabels` is a map of key-value pairs and requirements are ANDed.
 
-Instead of using `.sepc.selector.matchLabels`, you can use `.sepc.selector.matchExpressions` to define more sophisticated match roles. You can check [this doc](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#labelselector-v1-meta)
+Instead of using `.sepc.selector.matchLabels`, you can use `.sepc.selector.matchExpressions` to define more sophisticated match roles. You can check [this doc](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#labelselector-v1-meta "LabelSelector in Kubernetes")
 for more details about the usage of `.sepc.selector.matchExpressions`.
 
 **As you can see, a Deployment relies on pod labels and pod selector to find its pods. Therefore, it is recommended
@@ -118,20 +118,20 @@ The `affinity` field inside the `.spec.template.spec` allows you to specify whic
 **As shown in the following picture, the ideal scenario of running a Deployment is running multiple replicas
 in different nodes in different zones, and avoid running multiple replicas in the same node**
 
-![alt text](https://github.com/aaronzhuo1990/blogs/blob/master/kubernetes/deployments/k8s-ideal-scenario-of-running-deployment.png "The Ideal Scenario of Running A Deployment")
+![The Ideal Scenario of Running A Deployment](https://github.com/aaronzhuo1990/blogs/blob/master/kubernetes/deployments/k8s-ideal-scenario-of-running-deployment.png "The Ideal Scenario of Running A Deployment")
 
 You can utilize `.template.spec.affinity` to achieve this goal. Kubernetes provides `nodeAffinity` for you to constrain which nodes to run your Pods based on node labels. It also provides `podAffinity` and `podAntiAffinity` for you to specify inter-pod affinity. The official explanation of `podAffinity` and `podAntiAffinity` is "Inter-pod affinity and anti-affinity allow you to constrain which nodes your pod is eligible to be scheduled based on labels on pods that are already running on the node rather than based on labels on nodes." You can check
-[this doc](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/) for more details about node/pod affinity.
+[this doc](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/ "Assigning Pods to Nodes") for more details about node/pod affinity.
 
 
 ## ReplicaSets vs Deployments
 
 The following picture demonstrates the relationship between ReplicaSets and Deployments
 
-![alt text](https://github.com/aaronzhuo1990/blogs/blob/master/kubernetes/deployments/k8s-deploys-vs-replicasets.png "The Relationship Between ReplicaSets and Deployments")
+![The Relationship Between ReplicaSets and Deployments](https://github.com/aaronzhuo1990/blogs/blob/master/kubernetes/deployments/k8s-deploys-vs-replicasets.png "The Relationship Between ReplicaSets and Deployments")
 
 ReplicaSet is the next generation Replication Controller designed to replace the old
-[ReplicationController](https://kubernetes.io/docs/concepts/workloads/controllers/replicationcontroller/).
+[ReplicationController](https://kubernetes.io/docs/concepts/workloads/controllers/replicationcontroller/ "Kubernetes ReplicationController").
 **ReplicaSet ensures that a specific number of pod replicas are running at a given time,
 based on `replica number` you define in a ReplicaSet spec.**
 Although it provides an easy way to replicates Pods, it lacks the ability to rolling update pods.
@@ -142,7 +142,7 @@ the new ReplicaSet and smoothly terminates pods in the old ReplicaSet. **In othe
 The rolling update by replacing current ReplicaSet with a new one.**
 
 
-You can check [this doc](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#updating-a-deployment)
+You can check [this doc](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#updating-a-deployment "Updating a Deployment")
 for details about rolling update or rolling back Deployments.
 
 
@@ -156,7 +156,7 @@ sticky identification and they execute exactly the same workflow.**
 The following picture shows the typical use case of Deployments. You can see that a Deployment with three replicas
 is used to run the user micro-service. The replicas share the storage and each of them serves the same APIs.
 
-![alt text](https://github.com/aaronzhuo1990/blogs/blob/master/kubernetes/deployments/k8s-deploy-user-uservice.png "A Use Case of Deployments")
+![A Use Case of Deployments](https://github.com/aaronzhuo1990/blogs/blob/master/kubernetes/deployments/k8s-deploy-user-uservice.png "A Use Case of Deployments")
 
 ### Something to avoid
 
@@ -168,7 +168,7 @@ Some typical mistakes that I have made are: 1. Stick shared data to each Pod ins
 The following picture demonstrates the first case. From the picture you can see that Nginx default caching system uses local disk to store cache, and each Nginx replica maintain its own cache. This causes two problems: 1. A Nginx replica will lose its cache whenever it restarts. 2. the whole cashing system is low efficiency as a page request needs to be served in all the replicas in order to get itself "fully" cached.
 The root cause was that I stored page cache to each Nginx Pod, while the cache is supposed to be stored in a place where it can be shared among all the Nginx Pods. 
 
-![alt text](https://github.com/aaronzhuo1990/blogs/blob/master/kubernetes/deployments/k8s-deploy-ngx-cache-system.png "A "Statful" System in Deployments")
+![A "Statful" System in Deployments](https://github.com/aaronzhuo1990/blogs/blob/master/kubernetes/deployments/k8s-deploy-ngx-cache-system.png "A "Statful" System in Deployments")
 
 Be careful when you need to run cron jobs in a Deployment for several reasons. Firstly, running a time-consuming
 cron job in a Pod is not safe as it can be aborted and cannot be resumed from any Pod disaster.
@@ -179,14 +179,14 @@ Otherwise, running a cron job inside a Deployment may becomes a headache when yo
 
 The following picture shows the wrong usage of cron jobs in Deployments. A user micro-service, a Deployment with a single pod, intends to utilize a cron job to sends the daily digest to all the subscribed users. It loops through all the users and for each user, it checks whether today's email has been sent. If not, send today's daily digest to the user. It may work well when the system does not have many users. For example, it may just have two thousand users at the beginning and it might just take three hours to send daily digest for these two thousand users. However things will start to break when the user number grows to twenty thousand and it has to spend thirty hours running the cron job, provided everything goes well. The worst part is that increasing the number of replicas won't help because they have no way to partition the work amongst themselves.  **One way to avoid the problems like this, when using a Deployment, is to increase the replica to at least two at the beginning to force you to make your Deployment "stateless"**
 
-![alt text](https://github.com/aaronzhuo1990/blogs/blob/master/kubernetes/deployments/k8s-deploy-cron-jobs.png "Wrong Usage of Cron Jobs in Deployments")
+![Wrong Usage of Cron Jobs in Deployments](https://github.com/aaronzhuo1990/blogs/blob/master/kubernetes/deployments/k8s-deploy-cron-jobs.png "Wrong Usage of Cron Jobs in Deployments")
 
 That's it. Thank you for reading this blog.
 
 ## Reference
-- [Pods in Kubernetes](https://kubernetes.io/docs/concepts/workloads/pods/pod/)
-- [LabelSelector in Kubernetes](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#labelselector-v1-meta)
-- [Assigning Pods to Nodes](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/)
-- [Kubernetes ReplicationController](https://kubernetes.io/docs/concepts/workloads/controllers/replicationcontroller/)
-- [Kubernetes Deployments](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#updating-a-deployment)
+- [Pods in Kubernetes](https://kubernetes.io/docs/concepts/workloads/pods/pod/ "Pods in Kubernetes")
+- [LabelSelector in Kubernetes](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#labelselector-v1-meta "LabelSelector in Kubernetes")
+- [Assigning Pods to Nodes](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/ "Assigning Pods to Nodes")
+- [Kubernetes ReplicationController](https://kubernetes.io/docs/concepts/workloads/controllers/replicationcontroller/ "Kubernetes ReplicationController")
+- [Kubernetes Deployments](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#updating-a-deployment "Updating a Deployment")
 

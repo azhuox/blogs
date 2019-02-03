@@ -197,9 +197,9 @@ That's it. Thank you for reading this blog.
 
 # Reference
 - [Pods in Kubernetes](https://kubernetes.io/docs/concepts/workloads/pods/pod/)
-- [The StatefulSet Configuration for Setting Up A ZooKeeper Service]((https://github.com/kubernetes/contrib/blob/master/statefulsets/zookeeper/zookeeper.yaml))
-- [Official Website of ZooKeeper]((https://zookeeper.apache.org/))
-- [`ClusterIP` Services in Kubernetes]((https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types))
+- [The StatefulSet Configuration for Setting Up A ZooKeeper Service](https://github.com/kubernetes/contrib/blob/master/statefulsets/zookeeper/zookeeper.yaml)
+- [Official Website of ZooKeeper](https://zookeeper.apache.org/)
+- [`ClusterIP` Services in Kubernetes](https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types)
 - [`LoadBalancer` Services in Kubernetes](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer)
 - [LabelSelector in Kubernetes](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#labelselector-v1-meta)
 - [Readiness Probe in Kubernetes]((https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#define-readiness-probes))  

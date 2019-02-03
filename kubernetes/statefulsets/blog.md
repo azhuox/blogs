@@ -26,6 +26,8 @@ A [Zookeeper service](https://zookeeper.apache.org/) is a distributed coordinati
 
 [image]
 
+![A five-nodes Zookeeper Service](https://raw.githubusercontent.com/aaronzhuo1990/blogs/master/kubernetes/deployments/k8s-deploys-vs-replicasets.png "A five-nodes Zookeeper Service")
+
 Read in ZooKeeper is easy and fast as each server replicates all of the data in its storage. For example, when client 1 connects to server 0 and issues a read request, server 0 directly gets the data from its storage and sends it back to client 1. Write in ZooKeeper, however, is time-consuming and complicated. This is because any write request needs to be processed by the leader. The leader replicates the data write to a quorum and then make the data write visible to all the clients. A quorum (ceil(N/2 + 1)) is the requirement of minimum number of available servers. 
 For example, for a five-servers ensemble, at least three servers (5/2 + 1) need to be up at any time.   
 
@@ -173,6 +175,8 @@ The filed `spec.volumeClaimTemplates` is used to provide stable storage for Stat
 is stable and persistent. Any StatefulSet Pod will not lose its data whenever it is terminated and recreated. You	can check [this blog](https://link_to_set_up_pvcs) for details about setting up Persistent Volumes for a StatefulSet.
 
 [image]
+
+![The Persistent Storage in the Zookeeper Service](https://raw.githubusercontent.com/aaronzhuo1990/blogs/master/kubernetes/deployments/k8s-deploys-vs-replicasets.png "The Persistent Storage in the Zookeeper Service")
 
 ## Use Case of StatefulSets
 

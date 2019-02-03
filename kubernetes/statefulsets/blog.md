@@ -1,12 +1,13 @@
 # Kubernetes StatefulSets
 
 What is included in this blog:
+
 - What is a Kubernetes StatefulSet
 - How to create a StatefulSet
 - Use Case of StatefulSets
 
 ## prerequisites
-I recommend you know the basic knowledge Kubernetes Pods before reading this blog. You can check [this doc](https://kubernetes.io/docs/concepts/workloads/pods/pod/) for details about Kubernetes Pods.
+I recommend you know the basic knowledge Kubernetes Pods before reading this blog. You can check [this doc](https://kubernetes.io/docs/concepts/workloads/pods/pod/ "Pods in Kubernete") for details about Kubernetes Pods.
 
 ## What Is A StatefulSet
 
@@ -18,15 +19,13 @@ A StatefulSet consists of two components:
 - A Headless Service used to control the network ID of the StatefulSet's Pods
 - A StatefulSet object used to create and manage its Pods. 
 
-The following example demonstrates how to use a StatefulSet to create a ZooKeeper Server. Please note that the following `StatefulSet Spec` is simplified for demo purpose. You can check [this yaml file](https://github.com/kubernetes/contrib/blob/master/statefulsets/zookeeper/zookeeper.yaml) for the complete StatefulSet configuration of the ZooKeeper Service.
+The following example demonstrates how to use a StatefulSet to create a ZooKeeper Server. Please note that the following `StatefulSet Spec` is simplified for demo purpose. You can check [this yaml file](https://github.com/kubernetes/contrib/blob/master/statefulsets/zookeeper/zookeeper.yaml "The StatefulSet Configuration for Setting Up A ZooKeeper Service") for the complete StatefulSet configuration of the ZooKeeper Service.
 
 ### What Is A ZooKeeper Service
 
-A [Zookeeper service](https://zookeeper.apache.org/) is a distributed coordination system for distributed applications.  It allows to you read, write data and observe data updates. Data is stored and replicated in each ZooKeeper server and these servers groups together as a ZooKeeper Ensemble. The following picture shows the overview of a ZooKeeper service with five ZooKeeper servers. When the ZooKeeper Service starts up, the ensemble holds an election and selects server 1 to be the leader. Then clients can connect to any of these ZooKeeper servers to read/write data once the service is ready. 
+A [Zookeeper service](https://zookeeper.apache.org/ "Zookeeper Service Offical Site") is a distributed coordination system for distributed applications.  It allows to you read, write data and observe data updates. Data is stored and replicated in each ZooKeeper server and these servers groups together as a ZooKeeper Ensemble. The following picture shows the overview of a ZooKeeper service with five ZooKeeper servers. When the ZooKeeper Service starts up, the ensemble holds an election and selects server 1 to be the leader. Then clients can connect to any of these ZooKeeper servers to read/write data once the service is ready. 
 
-[image]
-
-![A five-nodes Zookeeper Service](https://raw.githubusercontent.com/aaronzhuo1990/blogs/master/kubernetes/deployments/k8s-deploys-vs-replicasets.png "A five-nodes Zookeeper Service")
+![A five-nodes Zookeeper Service](https://raw.githubusercontent.com/aaronzhuo1990/blogs/master/kubernetes/statefulsets/zookeeper-svc-in-statefulset.jpeg "A five-nodes Zookeeper Service")
 
 Read in ZooKeeper is easy and fast as each server replicates all of the data in its storage. For example, when client 1 connects to server 0 and issues a read request, server 0 directly gets the data from its storage and sends it back to client 1. Write in ZooKeeper, however, is time-consuming and complicated. This is because any write request needs to be processed by the leader. The leader replicates the data write to a quorum and then make the data write visible to all the clients. A quorum (ceil(N/2 + 1)) is the requirement of minimum number of available servers. 
 For example, for a five-servers ensemble, at least three servers (5/2 + 1) need to be up at any time.   
@@ -57,7 +56,7 @@ spec:
     app: zk
 ```
 
-Unlike a [`ClusterIP` Service](https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types) or a [`LoadBalancer` Service](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer), a Headless Service does not provide load-balancing. Based on my experience, any request to `zk-hs.default.svc.cluster.local` is always redirected to the first StatefulSet Pod (`zk-0` in the example).
+Unlike a [`ClusterIP` Service](https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types "`ClusterIP` Services in Kubernete") or a [`LoadBalancer` Service](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer "`LoadBalancer` Services in Kubernetes"), a Headless Service does not provide load-balancing. Based on my experience, any request to `zk-hs.default.svc.cluster.local` is always redirected to the first StatefulSet Pod (`zk-0` in the example).
 Therefore, A `ClusterIP` or a `LoadBalancer` Service is required if you need to expose a StatefulSet to the Internet or load-balance traffic for a StatefulSet Pods. 
 
 
@@ -140,7 +139,7 @@ The field `spec` is also required as it describes the specification of the State
 
 #### Pod Selector
 
-Like a Deployment, a StatefulSet uses the field `spec.selctor` to find which Pods to manage. You can check [this doc](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#labelselector-v1-meta) for details about the usage of `Pod Selector`.  
+Like a Deployment, a StatefulSet uses the field `spec.selctor` to find which Pods to manage. You can check [this doc](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#labelselector-v1-meta "LabelSelector in Kubernetes") for details about the usage of `Pod Selector`.  
 
 #### Replica
 
@@ -163,20 +162,18 @@ with the order `0, 1, 2, ..., N` and to be deleted with the order `N, N-1, ..., 
 
 There are several rolling update strategies available for StatefulSets. `RollingUpdate` is the default strategy and it deletes and recreates each Pod for a StatefulSet when a rolling update occurs.
 
-Doing rolling updates for applications like ZooKeepers is a little bit tricky: Other Pods need enough time to elect a new leader when the StatefulSet Controller is recreating the leader. **Therefore, You should consider configuring [`readnessProbe`](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#define-readiness-probes) and `readnessProbe.initialDelaySeconds` for the containers inside a StatefulSet Pods to delay the new Pod to be ready, thus delaying the rolling update of the next Pod and giving other running Pods enough time to update the service topology.** This should be able to give your applications, for example, a ZooKeeper service, enough time to handle the case where a server is lost and back.
+Doing rolling updates for applications like ZooKeepers is a little bit tricky: Other Pods need enough time to elect a new leader when the StatefulSet Controller is recreating the leader. **Therefore, You should consider configuring [`readnessProbe`](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#define-readiness-probes "Readiness Probe in Kubernetes") and `readnessProbe.initialDelaySeconds` for the containers inside a StatefulSet Pods to delay the new Pod to be ready, thus delaying the rolling update of the next Pod and giving other running Pods enough time to update the service topology.** This should be able to give your applications, for example, a ZooKeeper service, enough time to handle the case where a server is lost and back.
 
 #### Pod Affinity
 
-**Like a Deployment, the ideal scenario of running a StatefulSet is distribute its Pods to different nodes in different zones and avoid running multiple Pods in the same node.** The field `spec.template.spec.affinity` allows you to specify node affinity and inter-pod affinity (or anti-affinity) for the SatefulSet Pods. You can check [this doc](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/) for details about using node/pod affinity in Kubernetes
+**Like a Deployment, the ideal scenario of running a StatefulSet is distribute its Pods to different nodes in different zones and avoid running multiple Pods in the same node.** The field `spec.template.spec.affinity` allows you to specify node affinity and inter-pod affinity (or anti-affinity) for the SatefulSet Pods. You can check [this doc](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/ "Assigning Pods to Nodes") for details about using node/pod affinity in Kubernetes
 
 #### volumeClaimTemplates
 
 The filed `spec.volumeClaimTemplates` is used to provide stable storage for StatefulSets. As shown in  the following	picture, the field `spec.volumeClaimTemplates` creates a Persistent Volume Claim (`datadir-zk-0`), a Persistent Volume (`pv-0000`), and a 10 GB standard persistent disk for Pod `zk-0`. These storage settings have the same life cycle with the StatefulSet, which means the storage for a Stateful Pod 
-is stable and persistent. Any StatefulSet Pod will not lose its data whenever it is terminated and recreated. You	can check [this blog](https://link_to_set_up_pvcs) for details about setting up Persistent Volumes for a StatefulSet.
+is stable and persistent. Any StatefulSet Pod will not lose its data whenever it is terminated and recreated.
 
-[image]
-
-![The Persistent Storage in the Zookeeper Service](https://raw.githubusercontent.com/aaronzhuo1990/blogs/master/kubernetes/deployments/k8s-deploys-vs-replicasets.png "The Persistent Storage in the Zookeeper Service")
+![The Persistent Storage in the Zookeeper Service](https://raw.githubusercontent.com/aaronzhuo1990/blogs/master/kubernetes/statefulsets/pvs-zookeeper-service.jpeg "The Persistent Storage in the Zookeeper Service")
 
 ## Use Case of StatefulSets
 
@@ -200,12 +197,10 @@ That's it. Thank you for reading this blog.
 
 # Reference
 - [Pods in Kubernetes](https://kubernetes.io/docs/concepts/workloads/pods/pod/)
-- [StatefulSet Configuration for Setting Up A ZooKeeper Service]((https://github.com/kubernetes/contrib/blob/master/statefulsets/zookeeper/zookeeper.yaml))
+- [The StatefulSet Configuration for Setting Up A ZooKeeper Service]((https://github.com/kubernetes/contrib/blob/master/statefulsets/zookeeper/zookeeper.yaml))
 - [Official Website of ZooKeeper]((https://zookeeper.apache.org/))
 - [`ClusterIP` Services in Kubernetes]((https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types))
 - [`LoadBalancer` Services in Kubernetes](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer)
 - [LabelSelector in Kubernetes](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#labelselector-v1-meta)
 - [Readiness Probe in Kubernetes]((https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#define-readiness-probes))  
 - [Assigning Pods to Nodes](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/)
-- [Specifying a Disruption Budget for your Application](https://kubernetes.io/docs/tasks/run-application/configure-pdb/)
-

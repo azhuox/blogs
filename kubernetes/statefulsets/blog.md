@@ -202,5 +202,5 @@ That's it. Thank you for reading this blog.
 - [`ClusterIP` Services in Kubernetes](https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types)
 - [`LoadBalancer` Services in Kubernetes](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer)
 - [LabelSelector in Kubernetes](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#labelselector-v1-meta)
-- [Readiness Probe in Kubernetes]((https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#define-readiness-probes))  
+- [Readiness Probe in Kubernetes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#define-readiness-probes)
 - [Assigning Pods to Nodes](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/)

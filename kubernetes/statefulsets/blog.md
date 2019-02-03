@@ -33,7 +33,7 @@ For example, for a five-servers ensemble, at least three servers (5/2 + 1) need 
 ### Headless Service
 A Headless Service is in charge of controlling the network domain for a StatefulSet. The way to create a headless service is to specify `clusterIP == None`. 
 
-The following spec is for creating a Headless Service for the ZooKeeper service. This Headless Service is used to manage [Pod Identify](####pod-identify) for the following StatefulSet.
+The following spec is for creating a Headless Service for the ZooKeeper service. This Headless Service is used to manage [Pod Identify](#pod-identify) for the following StatefulSet.
 
 ```yaml
 apiVersion: v1

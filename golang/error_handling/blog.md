@@ -371,6 +371,10 @@ func CreateUserAPIHandler(w http.ResponseWriter, r *http.Request) {
 - Use structs to define error types and expose them if you need to customize some error types in a package.
 - Define a customized interface to extend the `error` interface if all of the error types that you want to define have the same properties.
 
+BTW, you can check the complete example from [this repo](https://github.com/aaronzhuo1990/blogs/tree/master/golang/error_handling/users-usvc).
+
+That's it, thanks for reading this blog.
+
 Reference
 - [Why is my nil error value not equal to nil?](https://golang.org/doc/faq#nil_error)
 - [Json Package in Golang](https://golang.org/pkg/encoding/json/)

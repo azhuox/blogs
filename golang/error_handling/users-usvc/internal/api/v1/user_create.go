@@ -31,7 +31,7 @@ func CreateUserAPIHandler(w http.ResponseWriter, r *http.Request) {
     userManager, err := userV1.NewManager(...)
     if err != nil {
         log.Printf("[user_create_v1] error creating user manager, err: %s", err.Error())
-        http.Error(w, fmt.Sprintf("Internal server error, please retry later"), http.StatusBadRequest)
+        http.Error(w, "Internal server error, please retry later", http.StatusBadRequest)
         return
     }
 
@@ -39,7 +39,7 @@ func CreateUserAPIHandler(w http.ResponseWriter, r *http.Request) {
     ID, err := userManager.Create(user.FirstName, user.LastName, user.Password, user.Email)
 	if err != nil {
         log.Printf("[user_create_v1] error creating the user %#v, err: %s", user, err.Error())
-        http.Error(w, fmt.Sprintf("Internal server error, please retry later"), http.StatusInternalServerError)
+        http.Error(w, "Internal server error, please retry later", http.StatusInternalServerError)
         return
 	   }
 	// Return ID
@@ -64,10 +64,10 @@ func CreateUserAPIHandler(w http.ResponseWriter, r *http.Request) {
 		} else if _, ok := err.(*userV1.ConflictErr); ok {
 			http.Error(w, fmt.Sprintf("Bad request: %s", err.Error()), http.StatusConflict)
 		} else if _, ok := err.(*userV1.InternelServerErr); ok {
-			http.Error(w, fmt.Sprintf("Internal server error, please retry later."), http.StatusInternalServerError)
+			http.Error(w, "Internal server error, please retry later.", http.StatusInternalServerError)
 		} else {
 			// This should never happen
-           http.Error(w, fmt.Sprintf("Unknown error, please retry later."), http.StatusInternalServerError)
+           http.Error(w, "Unknown error, please retry later.", http.StatusInternalServerError)
        }
        return
    }
@@ -96,13 +96,13 @@ func CreateUserAPIHandler(w http.ResponseWriter, r *http.Request) {
 			case userV1.ErrTypeConflict:
 				http.Error(w, fmt.Sprintf("Bad request: %s", err.Error()), http.StatusConflict)
 			case userV1.ErrTypeInternalServerErr:
-				http.Error(w, fmt.Sprintf("Internal server error, please retry later."), http.StatusInternalServerError)
+				http.Error(w, "Internal server error, please retry later.", http.StatusInternalServerError)
 			default:
-				http.Error(w, fmt.Sprintf("Unknown error, please retry later."), http.StatusInternalServerError) 
+				http.Error(w, "Unknown error, please retry later.", http.StatusInternalServerError)
 			}
 		} else {
 			// This should never happen
-			http.Error(w, fmt.Sprintf("Unknown error, please retry later."), http.StatusInternalServerError)
+			http.Error(w, "Unknown error, please retry later.", http.StatusInternalServerError)
 		}
 	}
 	// Return ID

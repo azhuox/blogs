@@ -36,14 +36,14 @@ func newBadRequestErr(format string, a ...interface{}) error {
 	}
 }
 
-// EmailHasBeenUsed represents email has been used errors
-type EmailHasBeenUsedErr struct {
+// EmailHasBeenUsed represents resource conflict errors
+type ConflictErr struct {
 	*baseErr
 }
 
-// newEmailHasBeenUsedErr creates an instance of EmailHasBeenUsedErr
-func newEmailHasBeenUsedErr(format string, a ...interface{}) error {
-	return &EmailHasBeenUsedErr {
+// newConflictErr creates an instance of ConflictErr
+func newConflictErr(format string, a ...interface{}) error {
+	return &ConflictErr {
 		baseErr: newBaseErr(format, a...),
 	}
 }

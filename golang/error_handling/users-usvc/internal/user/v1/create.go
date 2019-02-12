@@ -33,7 +33,7 @@ func (m *manager) Create(firstName, lastName, password, email string) (string, e
 	}
 
 	if `a user with the given email already exists` {
-		return ID, newEmailHasBeenUsedErr("The email %s has been used by another user.", email)
+		return ID, newConflictErr("The email %s has been used by another user.", email)
 	}
 	
 	ID, err := mysqlClient.CreateUser(firstName, lastName, password, email)
@@ -54,7 +54,7 @@ func (m *manager) Create(firstName, lastName, password, email string) (string, e
 	}
 
 	if `a user with the given email already exists` {
-		return ID, newError(ErrTypeEmailHasBeenUsed, "The email %s has been used by another user.", email) 
+		return ID, newError(ErrTypeConflict, "The email %s has been used by another user.", email)
 	}
 	
 	ID, err := mysqlClient.CreateUser(firstName, lastName, password, email)

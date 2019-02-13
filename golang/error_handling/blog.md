@@ -97,7 +97,7 @@ Everything works fine in these code. However, one thing you may not be happy abo
 
 ### Solution 1: Utilize Golang Structs to Define Specific Error Types
 
-The first solution is utilizing Golang structs to define error types. Here is an example:
+The first solution utilizes Golang structs to define customized error types. Here is an example:
 
 ```go
 // baseErr - base class
@@ -193,9 +193,9 @@ func CreateUserAPIHandler(w http.ResponseWriter, r *http.Request) {
 ### Key Points
 
 - Return an `error` interface other than specific error types in the signature of the `userManager.Create()` method. You can read [this doc](https://golang.org/doc/faq#nil_error) for the reason.
-- Expose customized error types so that callers can do the error handling by converting an `error` interface to a specific error type.
+- Expose customized error types (make them public) so that callers can do error handling by converting an `error` interface to a specific error type.
 - Do not expose the `new` methods of those error types in order to make them read-only. Moreover, return an `error` interface in the signature of these`new` methods' as well, as this converts an error type's pointer (say `*userV1.BadRequestErr`) to an `error` interface.
-- Do the error handling by converting an `error` interface to a specific error type's pointer. The reason why this works is that the `err` returned by the `userManager.Create()` method is essentially an `error` interface with a value and a type which essentially is an error type’s pointer (say `*userV1.BadRequestErr`). Therefore, `if _, ok := err.(*userV1.BadRequestErr); ok {...}` totally works as it just converts the `err` back to its type.
+- Do the error handling by converting an `error` interface to a specific error type's pointer. The reason why this works is that the `err` returned by the `userManager.Create()` method is an `error` interface with a value and a type which essentially is an error type’s pointer (say `*userV1.BadRequestErr`). Therefore, `if _, ok := err.(*userV1.BadRequestErr); ok {...}` totally works as it just converts the interface `err` back to its type.
 
 ### Pros
 - It follows  the principle of returning an `error` interface in a function's signature.
@@ -223,14 +223,14 @@ if err := dec.Decode(&val); err != nil {
 ```
 
 ### Cons
-- The conversion from an `error` interface to a specific error type is ugly, especially when you need to this several times. You will have a long `if else` statement if you have to handle a bunch of error types. The `switch case` statement will not be able to be used in this case, as the `err.(type)` from the `userManager.Create()` method is always an `error` interface other than those specific error types.
-- Defining those error types and `new` methods are somehow overwhelmed. You will need to crate a struct and a `new` method for every error type. Plus, from the example, you can see that, in some cases,  we don't use an error type's methods or members, instead we only care about what the error type is. It is overwhelmed to use a struct to define an error type just for achieving this goal.
-- I personally don't like the idea of converting an `error` interface back to a specific error type. First, it somehow forces callers to figure out whether an error type or the error type's pointer is actually returned. For example, `if _, ok := err.(*userV1.BadRequestErr); ok {...}` will not work if the `userManager.Create()` method returns a `BadRequestErr` instead of `*BadRequestErr`. This is because Golang is a strong type language, so `BadRequestErr` does not eqaul to *BadRequestErr`. Second, in my opinion, an interface is not supposed to be converted back to a specific type. This is because a Golang interface is designed for you to focus on some behaviors (which are methods defined in the interface) and ignore the implementation details. Converting an `error` interface back to a specific error type means you want to expose some implementation details, thus violating the principle I just mentioned.
+- The conversion from an `error` interface to a specific error type is ugly, especially when you need to this several times. You will have a long `if else` statement if you have to handle a bunch of error types. You are not able to replace this long `if else` statement with a `switch err.(type) {case...}` statement, as the `err.(type)` (from the `userManager.Create()` method) is always an `error` interface, not a concrete error type.
+- Defining error types (with Golang structs) and those `new` methods are somehow overwhelmed. You need to crate a struct and a `new` method for every error type. Plus, you can see from the example that, in some cases,  we don't use an error type's methods or members, instead we only care about what the error type is. It is overwhelmed to use a struct to define an error type just for achieving this goal.
+- I personally don't like the idea of converting an `error` interface back to a specific error type. First, it somehow forces callers to figure out whether an error type or the error type's pointer is actually returned. For example, `if _, ok := err.(*userV1.BadRequestErr); ok {...}` will not work if the `userManager.Create()` method returns a `BadRequestErr` instead of `*BadRequestErr`. This is because Golang is a strong type language, so `BadRequestErr` does not equal to *BadRequestErr`. Second, in my opinion, an interface is not supposed to be converted back to a specific type. This is because a Golang interface is designed for you to focus on some behaviors (which are methods defined in the interface) and ignore the implementation details. Converting an `error` interface back to a specific error type means you want to expose some implementation details, thus violating the principle that I just mentioned.
 
 
 ### Solution 2: Define Error Type as A Property
 
-Instead of using Golang structs to define error types, the second solution adds  a `Type()` method to return error types in a customize `userV1.Error` interface extended from the `error` interface. Here is the definition of the `userV1. Error` interface and its implementation:
+Instead of using Golang structs to define error types, the second solution extend the `error` interface to a customized interface `userV1.Error` by adding  a `Type()` method which returns specific error types. Here is the definition of the `userV1. Error` interface and its implementation:
 
 ```go
 // Error interface defines the errors used in this package
@@ -335,7 +335,7 @@ func CreateUserAPIHandler(w http.ResponseWriter, r *http.Request) {
      log.Printf("[user_create_v1] error creating the user %#v, err: %s", user, err.Error())
 
      if uErr, ok := userV1.ConvertError(err); ok {
-        // Upgrade an `error` interface to a `userV1.Error` interface so that we can use the `Type()` method to get the error type
+        // Upgrade the `error` interface to the `userV1.Error` interface so that we can use the `Type()` method to get a concrete error type
         switch uErr.Type() {
         case userV1.ErrTypeBadRequest:
            http.Error(w, fmt.Sprintf("Bad request: %s", uErr.Error()), http.StatusBadRequest)
@@ -359,26 +359,26 @@ func CreateUserAPIHandler(w http.ResponseWriter, r *http.Request) {
 ```
 
 ### Key Points
-- **The idea behind this solution is  extending the `error` interface to a customized `userV1.Error` interface with a `Type()` method which is used to return error types**
-- the `userManager.Create()` method uses an `userV1.Error` interface other than an error type's pointer to record errors. This ensures no implementation details of the `userV1.Error` interface gets exposed.
-- The signature of `userManager.Create()` method still returns an `error` interface other than the `userV1.Error` interface. This gives you the freedom to keep using the same `error` interface instance `err` that is created at the beginning of the API handler and allows you to do the conversion whenever you need. It is like we provide you with a great feature, but we do not force you to use this feature.
-- The Golang structs in the first solution are replaced with the constants to represents error types. Then callers of the `userManager.Create()` method can utilize these constants to do the error handling.
-- In the `userV1.ConvertError()` method, an `error` interface is upgraded to an `userV1.Error` interface for parsing an error returned by the `userManager.Create()` method.
+- **The idea behind this solution is extending the `error` interface to a customized `userV1.Error` interface with a `Type()` method which returns error types**
+- the `userManager.Create()` method uses an `userV1.Error` interface instance other than an error type's pointer to record errors. This ensures no implementation details of the `userV1.Error` interface gets exposed.
+- The signature of `userManager.Create()` method still returns an `error` interface other than a `userV1.Error` interface. This gives you the freedom to keep using the same `error` interface instance `err` created at the beginning of the API handler and allows you to do the conversion whenever you need. **It is like we provide you with a great feature, but we do not force you to use this feature.**
+- Those Golang structs in the first solution are replaced with the constants in this solution. Then callers of the `userManager.Create()` method can utilize these constants to handle different errors.
+- In the `userV1.ConvertError()` method, an `error` interface is upgraded to an `userV1.Error` interface when you need to parse errors returned by the `userManager.Create()` method.
 
 ### Pros
 - Return an `error` interface in the signature of the `userManager.Create()` method allows you to return either a regular `error` instance or a `userV1.Error` instance. (Although you should always return `userV1.Error` for any methods in the `userV1` package.)
-- It hides the details of how a private Golang struct (`userV1.errorImpl`) is implemented to fit the `userV1.Error` interface and only exposes what it needs to be exposed.
-- It is easier and it has less work to define error types with constants other than structs.
+- It hides the details of how a private Golang struct (`userV1.errorImpl`) is defined to realize the `userV1.Error` interface and it only exposes what it wants to expose.
+- It is easier and has less work to define error types using constants other than structs.
 
 ### Cons
-- Customizing error types becomes impossible in this solution. This is because all the error types are constructed from the same Golang struct `userV1.errorImpl` and they all follow the constraint of the `userV1.Error` interface.
+- Customizing error types becomes impossible in this solution. This is because all the errors in this solution are constructed from the same Golang struct `userV1.errorImpl` and they all follow the constraint of the `userV1.Error` interface.
 
 ## Summary
 - It is recommended for functions that return errors always to use the `error` interface other than concrete error types in their signature.
-- Use structs to define error types and expose them if you need to customize some error types for a package.
-- Define a customized interface to extend the `error` interface if all of the error types that you want to define have the same properties.
+- **Use structs to define error types and expose them if you need to customize some error types.**
+- **Define a customized interface to extend the `error` interface if all of the error types that you want to define have the same properties.**
 
-BTW, you can check the complete example from [this repo](https://github.com/aaronzhuo1990/blogs/tree/master/golang/error_handling/users-usvc).
+You can check the complete example from [this repo](https://github.com/aaronzhuo1990/blogs/tree/master/golang/error_handling/users-usvc).
 
 That's it, thanks for reading this blog.
 

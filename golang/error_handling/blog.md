@@ -159,7 +159,7 @@ func (m *manager) Create(firstName, lastName, password, email string) (string, e
 
 Error handling in the API handler:
 
-```
+```go
 // CreateUserAPIHandler is the API handler for creating a site. It uses the first solution to do the error handling.
 func CreateUserAPIHandler(w http.ResponseWriter, r *http.Request) {
   var err error

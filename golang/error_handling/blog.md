@@ -14,7 +14,8 @@ Suppose you have a micro-service called `users-usvc` which is used to manage use
 Here is the API specification
 
 ```go
-POST https://user.micro-service.com/users/v1/ json:{FirstName: string, LastName: string, Password: string, Email: string}
+POST https://user.micro-service.com/users/v1/
+Request Body:{FirstName: string, LastName: string, Password: string, Email: string}
 ```
 
 ### Pseudocode

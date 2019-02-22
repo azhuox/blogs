@@ -1,5 +1,10 @@
 package libfoo
 
+import (
+	"rsc.io/quote"
+	"fmt"
+)
+
 // clientImpl - An implementation of Client interface
 //
 type clientImpl struct {
@@ -44,6 +49,8 @@ func (c *clientImpl) Method3() error {
 func (c *clientImpl) Method4() error {
 
 	// Concrete implementation details are omitted
+
+	fmt.Println(quote.Hello())
 
 	return nil
 }

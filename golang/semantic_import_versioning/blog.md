@@ -112,9 +112,39 @@ However, you will not be able to get specific versions of `v1` and `v2` simultan
 
 #### How It Works with Go Modules
 
-It is very easy to convert the `libfoo` package to go modules with this solution. What we need to do is add a `go.mod` file for `v1` and `v2`:
+It is very easy to convert the `libfoo` package to go modules with this solution. What we need to do running the following commands to convert `v1` and `v2` to go modules:
 
-`go.mod` for `v1`:
+```
+cd /path/to/solutiona/libfoo
+go mod init github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo
+go: creating new go.mod: module github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo
+go build
+
+cd /path/to/solutiona/libfoo/v2
+go mod init github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo/v2
+go: creating new go.mod: module github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo/v2
+go build
+```
+
+It then creates a `go.mod` file for `v1` and `v2`:
+
+`v1's` `go.mod`:
+```
+module github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo
+
+require rsc.io/quote v1.5.2
+```
+
+`v2's` `go.mod`:
+```
+module github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo/v2
+
+require rsc.io/quote v1.5.2
+```
+
+Take `v1's` `go.mod` as an example, It declares `libfoo` (`v1`) as a module and then lists all the dependencies. `v1` and `v2` are considered different go modules.
+
+With Go Modules, you can  
 
 
 

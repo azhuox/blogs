@@ -1,6 +1,5 @@
 package libfoo
 
-
 // Client defines public interface provided by this package
 //
 type Client interface {

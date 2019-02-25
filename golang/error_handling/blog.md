@@ -1,4 +1,4 @@
-# Error Handling In Golang
+# Error Handling In Go
 
 What is included in this blog:
 
@@ -361,7 +361,7 @@ func CreateUserAPIHandler(w http.ResponseWriter, r *http.Request) {
 ### Key Points
 - **The idea behind this solution is extending the `error` interface to a customized `userV1.Error` interface with a `Type()` method which returns error types**
 - the `userManager.Create()` method uses an `userV1.Error` interface instance other than an error type's pointer to record errors. This ensures no implementation details of the `userV1.Error` interface gets exposed.
-- The signature of `userManager.Create()` method still returns an `error` interface other than a `userV1.Error` interface. This gives you the freedom to keep using the same `error` interface instance `err` created at the beginning of the API handler and allows you to do the conversion whenever you need. **It is like we provide you with a great feature, but we do not force you to use this feature.**
+- The signature of `userManager.Create()` method still returns an `error` interface other than a `userV1.Error` interface. This gives you the freedom to keep using the same `error` interface instance `err` created at the beginning of the API handler and allows you to do the conversion whenever you need. **It is like we provide you with a great feature, but we do not force you to use it.**
 - Those Golang structs in the first solution are replaced with the constants in this solution. Then callers of the `userManager.Create()` method can utilize these constants to handle different errors.
 - In the `userV1.ConvertError()` method, an `error` interface is upgraded to an `userV1.Error` interface when you need to parse errors returned by the `userManager.Create()` method.
 
@@ -376,7 +376,7 @@ func CreateUserAPIHandler(w http.ResponseWriter, r *http.Request) {
 ## Summary
 - It is recommended for functions that return errors always to use the `error` interface other than concrete error types in their signature.
 - **Use structs to define error types and expose them if you need to customize some error types.**
-- **Define a customized interface to extend the `error` interface if all of the error types that you want to define have the same properties.**
+- **Define a customized interface to extend the `error` interface if all the error types that you want to define have the same properties.**
 
 You can check the complete example from [this repo](https://github.com/aaronzhuo1990/blogs/tree/master/golang/error_handling/users-usvc).
 

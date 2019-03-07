@@ -57,20 +57,21 @@ func CreateUserAPIHandler(w http.ResponseWriter, r *http.Request) {
 
    // Use the user manager to create a user with given parameters
    ID, err := userManager.Create(user.FirstName, user.LastName, user.Password, user.Email)
+
    if err != nil {
-		log.Printf("[user_create_v1] error creating the user %#v, err: %s", user, err.Error())
-		if _, ok := err.(*userV1.BadRequestErr); ok {
-			http.Error(w, fmt.Sprintf("Bad request: %s", err.Error()), http.StatusBadRequest)
-		} else if _, ok := err.(*userV1.ConflictErr); ok {
-			http.Error(w, fmt.Sprintf("Bad request: %s", err.Error()), http.StatusConflict)
-		} else if _, ok := err.(*userV1.InternelServerErr); ok {
-			http.Error(w, "Internal server error, please retry later.", http.StatusInternalServerError)
-		} else {
-			// This should never happen
-           http.Error(w, "Unknown error, please retry later.", http.StatusInternalServerError)
-       }
-       return
+	   log.Printf("[user_create_v1] error creating the user %#v, err: %s", user, err.Error())
+	   switch err.(type) {
+	   case *userV1.BadRequestErr:
+		   http.Error(w, fmt.Sprintf("Bad request: %s", err.Error()), http.StatusBadRequest)
+	   case *userV1.ConflictErr:
+		   http.Error(w, fmt.Sprintf("Bad request: %s", err.Error()), http.StatusConflict)
+	   case *userV1.InternelServerErr:
+		   http.Error(w, "Internal server error, please retry later.", http.StatusInternalServerError)
+	   default:
+		   http.Error(w, "Unknown error, please retry later.", http.StatusInternalServerError)
+	   }
    }
+
    // Return ID
    json.NewEncoder(w).Encode(&struct{ID string `json:"ID"`}{ID: ID})
    w.WriteHeader(http.StatusOK)

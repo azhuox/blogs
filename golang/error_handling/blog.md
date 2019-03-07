@@ -162,30 +162,31 @@ Error handling in the API handler:
 ```go
 // CreateUserAPIHandler is the API handler for creating a site. It uses the first solution to do the error handling.
 func CreateUserAPIHandler(w http.ResponseWriter, r *http.Request) {
-  var err error
+	var err error
 
-  ... // A bunch of operations are omitted
+	... // A bunch of operations are omitted
 
-  // Use the user manager to create a user with given parameters
-  ID, err := userManager.Create(user.FirstName, user.LastName, user.Password, user.Email)
-  if err != nil {
-     log.Printf("[user_create_v1] error creating the user %#v, err: %s", user, err.Error())
-     if _, ok := err.(*userV1.BadRequestErr); ok {
-        http.Error(w, fmt.Sprintf("Bad request: %s", err.Error()), http.StatusBadRequest)
-     } else if _, ok := err.(*userV1.ConflictErr); ok {
-        http.Error(w, fmt.Sprintf("Bad request: %s", err.Error()), http.StatusConflict)
-     } else if _, ok := err.(*userV1.InternelServerErr); ok {
-        http.Error(w, "Internal server error, please retry later.", http.StatusInternalServerError)
-     } else {
-        // This should never happen
-          http.Error(w, "Unknown error, please retry later.", http.StatusInternalServerError)
-      }
-      return
-  }
-  // Return ID
-  json.NewEncoder(w).Encode(&struct{ID string `json:"ID"`}{ID: ID})
-  w.WriteHeader(http.StatusOK)
-  return
+   // Use the user manager to create a user with given parameters
+   ID, err := userManager.Create(user.FirstName, user.LastName, user.Password, user.Email)
+
+   if err != nil {
+	   log.Printf("[user_create_v1] error creating the user %#v, err: %s", user, err.Error())
+	   switch err.(type) {
+	   case *userV1.BadRequestErr:
+		   http.Error(w, fmt.Sprintf("Bad request: %s", err.Error()), http.StatusBadRequest)
+	   case *userV1.ConflictErr:
+		   http.Error(w, fmt.Sprintf("Bad request: %s", err.Error()), http.StatusConflict)
+	   case *userV1.InternelServerd5032592-c01e-4663-856a-2401ccee4c03Err:
+		   http.Error(w, "Internal server error, please retry later.", http.StatusInternalServerError)
+	   default:
+		   http.Error(w, "Unknown error, please retry later.", http.StatusInternalServerError)
+	   }
+   }
+
+   // Return ID
+   json.NewEncoder(w).Encode(&struct{ID string `json:"ID"`}{ID: ID})
+   w.WriteHeader(http.StatusOK)
+   return
 }
 ```
 
@@ -223,7 +224,6 @@ if err := dec.Decode(&val); err != nil {
 ```
 
 ### Cons
-- The conversion from an `error` interface to a specific error type is ugly, especially when you need to this several times. You will have a long `if else` statement if you have to handle a bunch of error types. You are not able to replace this long `if else` statement with a `switch err.(type) {case...}` statement, as the `err.(type)` (from the `userManager.Create()` method) is always an `error` interface, not a concrete error type.
 - Defining error types (with Golang structs) and those `new` methods are somehow overwhelmed. You need to crate a struct and a `new` method for every error type. Plus, you can see from the example that, in some cases,  we don't use an error type's methods or members, instead we only care about what the error type is. It is overwhelmed to use a struct to define an error type just for achieving this goal.
 - I personally don't like the idea of converting an `error` interface back to a specific error type. First, it somehow forces callers to figure out whether an error type or the error type's pointer is actually returned. For example, `if _, ok := err.(*userV1.BadRequestErr); ok {...}` will not work if the `userManager.Create()` method returns a `BadRequestErr` instead of `*BadRequestErr`. This is because Golang is a strong type language, so `BadRequestErr` does not equal to *BadRequestErr`. Second, in my opinion, an interface is not supposed to be converted back to a specific type. This is because a Golang interface is designed for you to focus on some behaviors (which are methods defined in the interface) and ignore the implementation details. Converting an `error` interface back to a specific error type means you want to expose some implementation details, thus violating the principle that I just mentioned.
 

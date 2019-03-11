@@ -125,7 +125,7 @@ Explanation:
 - Two `nil` interface values are equivalent only when they carry the same type. In this case, the converted interface value `{type: *int, value: nil}` has a concrete dynamic type but the other interface value has not. That is why the comparison result is `false`.
 
 A more interesting example:
-```
+```go
 package main
 
 import "io"

@@ -1,5 +1,3 @@
-# Go `nil`
-
 ## What is `nil` in Go
 `nil` in Go has several meanings:
 - It represents "null" in Go. This means two things: 1. It does not have type. 2. Its value is "null".
@@ -68,7 +66,7 @@ func main() {
 These code will fail to compile as they are trying to compare `nil` values of two different types.
 
 
-### Two `nil` Values of A Same Type May Not Be Comparable
+### Two `nil` Values of The Same Type May Not Be Comparable
 
 Example:
 ```go
@@ -81,7 +79,7 @@ func main() {
 }
 ```
 
-Take `var sb = (map[string]bool)(nil) == (map[string]bool)(nil)` as an example, the reason why teo `nil` values of a same type (`map[string]bool`) are not comparable is because Go does not support comparision in slice, map and function types. *You can see that we are comparing two values of a non-comparable type in this case. That is why it fails.**
+Take `var sb = (map[string]bool)(nil) == (map[string]bool)(nil)` as an example, the reason why two `nil` values of a same type (`map[string]bool`) are not comparable is because Go does not support comparison in slice, map and function types. *You can see that we are comparing two values of a non-comparable type in this case. That is why it fails.**
 
 But the following code works and results are true:
 
@@ -94,7 +92,7 @@ But the following code works and results are true:
 Take `var sb = (map[string]bool)(nil) == nil` as an example, `(map[string]bool)(nil)` declares a `map[string]bool` temporary variable which value is `nil` and `(map[string]bool)(nil) == nil` detects whether the variable's value is `nil` and then assigns the results to `sb`. **You can see that we are comparing the value of a non-comparable type with its zero value (`nil`) in this case. That's why it works.**
 
 
-### Two `nil` Values of A Same Type Can Be Comparable Only When This Type Supports Comparision
+### Two `nil` Values of The Same Type Can Be Comparable Only When This Type Supports Comparision
 
 Example:
 ```go
@@ -123,8 +121,8 @@ func main() {
 
 Explanation:
 - **An interface value consists of a dynamic type and a dynamic value.** `interface{}(nil)` declares an interface value with `{type: nil, value: nil}`.
-- The non-interface value is converted to the type of the interface value before making the comparision with an interface value. In this example, `(*int)(nil)` is converted to an interface value with `{type: *int, value: nil}`.
-- Two `nil` interface values are equivalent only when they carry the same type. In this case, the converted interface value `{type: *int, value: nil}` has a concrete dynamic type but the other interface value has not. That is why the comparision result is `false`.
+- The non-interface value is converted to the type of the interface value before making the comparison with an interface value. In this example, `(*int)(nil)` is converted to an interface value with `{type: *int, value: nil}`.
+- Two `nil` interface values are equivalent only when they carry the same type. In this case, the converted interface value `{type: *int, value: nil}` has a concrete dynamic type but the other interface value has not. That is why the comparison result is `false`.
 
 A more interesting example:
 ```
@@ -159,6 +157,6 @@ Explanation:
 - **An interface value equals to `nil` only when its type and value are both `nil`.** In example, `w` is an `io.Writer` interface value with `{type: *bytes.Buffer, value: nil}` after the `w = b` assignment. Therefore, `w == nil` is `false` as it carries `*bytes.Buffer` other than `nil` as its concrete dynamic type.
 
 ## Summary
-- `nil` is and pre-declared identifier which can be used to represent the zero values of some types in Go.
-- Be careful when using `nil` in comparision, especially when interface values are involved. You need to understand what you are comparing: types, or values, or both.
+- `nil` is and a pre-declared identifier which can be used to represent the zero values of some types in Go.
+- Be careful when using `nil` in comparison, especially when interface values are involved. You need to understand what you are comparing: types, or values, or both.
 - `(a thing)(nil)` may not equal to `nil`, depends on what that thing is (a pointer or an interface). This means Go is a strong-type language and it also applies to `nil` even though `nil` itself does not have default type (**sarcasm**).

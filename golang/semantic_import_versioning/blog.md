@@ -45,7 +45,7 @@ Let us go through this example to see how Semantic Import Versioning works.
 
 ### Change Log
 
-A file called `CHANGELOG.md` (under the root folder of the package) is used to record all the release history of the package. Here is part of the change logs:
+A file called `CHANGELOG.md` (under the root folder of the package) is used to record release history of the package. Suppose the following releases need to be released:
 
 ```
 --------------------------------------------------------------------------------
@@ -173,7 +173,7 @@ Take `v1's` `go.mod` as an example, It declares `libfoo` (`v1`) as a module and 
 
 #### Without Go Modules
 
-Without Go Modules, you can release the versions listed in the `CHANGELOG.md` file by creating github releases. However, this does not allow you use specific versions of `v1` and `v2` simultaneously in a single build. This is because creating a release in github is like creating a snapshot for the whole repo, not just for the single package. For example, suppose you want to use `v1.0.0` and `v2.1.0` in a single build and `libfoo` is released with the following order:
+Without Go Modules, you can release the versions listed in the `CHANGELOG.md` file by creating github releases. However, this does not allow you use specific versions of `v1` and `v2` simultaneously in a single build. This is because creating a release in github is like creating a snapshot for the whole repo, not just for the single package. For example, suppose you want to use `1.0.0` and `2.1.0` in a single build and `libfoo` is released with the following order:
 
 ```
 v1.0.0
@@ -183,10 +183,17 @@ v2.1.0
 v1.1.1
 ```
 
-You cannot grab `v1.0.0` as it doesn't has `v2.1.0`. You can only require either `v2.1.0` or `v1.1.1` as they all containers `v2.1.0` and later versions of `v1.0.0`. Suppose you require `v1.1.1`, then you will get `v1.1.1` and `v2.1.0`. Your requirement of `v1.0.0` will not be satisfied but this is **OK**. As this fits the minimal
+You cannot grab `1.0.0` as it does not have `2.1.0`. You can only require either `2.1.0` or `1.1.1` as they both containers `2.1.0` and `1.1.x` version later than `1.0.0`. Suppose you require `1.1.1`, then you will get `1.1.1` and `2.1.0`. The requirement of `1.0.0` will not be satisfied but this is **OK** as either `1.1.0` or `1.1.1` is supposed to back-compatible with `1.0.0` because of the specification of semver.
 
 
 #### With Go Modules
+
+Things become easier when using Go Modules. With Go Modules, these versions are released by tagging specific commits using git.
+
+```
+1. Cd to the root directory of `libfoo`
+2.
+```
 
 
 

@@ -7,6 +7,6 @@ func main(){
 	libFooV1 := libfoo.NewClient()
 	libFooV2 := libfooV2.NewClient()
 
-	libFooV1.Method4()
+	libFooV1.Method5()
 	libFooV2.Method4()
 }

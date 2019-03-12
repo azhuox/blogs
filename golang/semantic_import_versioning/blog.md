@@ -17,17 +17,31 @@ What is included in this blog:
 
 ### Go Modules
 
+Go Modules are an experimental opt-in feature in Go 1.11 with the plan of finalizing feature for Go 1.13. The definition of a Go Module from [this proposal](https://go.googlesource.com/proposal/+/master/design/24301-versioned-go.md) is "is a group of packages that share a common prefix, the module path, and are versioned together as a single unit". In my opinion, the idea behind Go Modules is break a giant Go repo into multiple smaller modules and adopts Semantic Versioning in modules to solve Go [dependency hell](https://en.wikipedia.org/wiki/Dependency_hell) problems, like conflicting dependencies or diamond dependency.
 
 ## What is Semantic Import Versioning
 
-[Semantic Ipot Versioning](https://research.swtch.com/vgo-import) is a package management method for adopting Semantic Versioning in Golang packages. It follows the following `import compatibility rule`:
-**"If an old package and a new package have the same import path, the new package must be backwards compatible with the old package."**
+[Semantic Import Versioning](https://research.swtch.com/vgo-import) is a package management method for adopting Semantic Versioning in Golang packages. It is designed for versioning go package with the following rules:
+- **`The import compatibility rule`: "If an old package (say `libfoo`) and a new package have the same import path, the new package must be backwards compatible with the old package."**
+- **A new package with a different import path (say `libfoo/v2`) must be introduced to distinguish it from the old package if a breaking change occurs.**
 
-## How to Do It?
+## What Kinds of Problems It Can Solve?
 
-I wrote a dump package called `libfoo` in order to demonstrate how to do Semantic Import Versioning. You can check [this repo](https://github.com/aaronzhuo1990/blogs/tree/master/golang/semantic_import_versioning/example/libfoo) for more details about this example.
+### Conflicting Dependencies
+The following picture shows the scenario of Conflicting Dependencies, in which application A depends on `libFoo` 1.2.0 while one of its dependencies `libB` requires `libFoo` 1.9.0, and different versions of libfoo cannot be simultaneously installed. Semantic Import Versioning solves this problem with the [minimal version selection algorithm](https://research.swtch.com/vgo-mvs): The version selected by minimal version selection is always the semantically highest of the versions. In this case, `libFoo` 1.9.0 is selected as it is the highest version. Moreover, based on the specification of semver, 1.9.0 should be back-compatible with 1.2.0 as they have the same `Major` version. Therefore, application A should works with 1.9.0 even though it requires 1.2.0.
+[image]
+
+### Diamond Dependency
+
+The following picture shows the scenario of Diamond Dependency, in which application A depends on `libB` and `libC`, both B and C depends on `libD`, but B requires D 1.1.0 and C requires D 2.2.2. Semantic Import Versioning solves this problem by installing both 1.1.0 and 2.2.2 and distinguishing them with import path, for example, `path/to/d` vs `path/to/d/v2`.
+[image]
+
+## Example
+
+I wrote a dump package called `libfoo` in order to demonstrate how Semantic Import Versioning works. You can check [this repo](https://github.com/aaronzhuo1990/blogs/tree/master/golang/semantic_import_versioning/example/libfoo) for more details about this example.
 
 Let us go through this example to see how Semantic Import Versioning works.
+
 
 ### Change Log
 
@@ -39,54 +53,67 @@ A file called `CHANGELOG.md` (under the root folder of the package) is used to r
 
 ### 2.1.0
 - Add `Method6`
+- Date: 2019-02-14
 
 ### 2.0.0
 - BREAKING CHANGE: Modify the signature of the method `Method5` to let it accept an integer and a string
+- Date: 2019-02-13
 
 --------------------------------------------------------------------------------
 ## v1
 
 ### 1.1.1
 - Fix a bug in `Method4`
+- Date: 2019-02-15
 
 ### 1.1.0
 - Add `Method5`
+- Date: 2019-02-12
 
 ### 1.0.0
 - Production-ready release
+- Date: 2019-02-11
 
 --------------------------------------------------------------------------------
 ## v0
 
 ### 0.4.0
 - Add `Method4`
+- Date: 2019-02-10
 
 ### 0.2.2
 - Fix a bug in `Method1`
+- Date: 2019-02-09
 
 ### 0.2.1
 - Fix a bug in `Method2`
+- Date: 2019-02-08
 
 ### 0.2.0
 - Add `Method2`
 - Add `Method3`
+- Date: 2019-02-07
 
 ### 0.1.0
 - Initial Release
 - Add `Method1`
+- Date: 2019-02-06
 ```
 
 From the change log, you can see that:
 - The initial development release starts at `0.1.0` and the `Minor` and `Patch` version are increased respectively for each subsequent release and each bug fix release.
 - `1.0.0` is released when the package is ready for production. There is no breaking changes between `v0` and `v1`. `v0` is for internal development while `v1` means most of bugs are fixed, all the features are fully tested and it can be used in production with stability guarantee.
 - `v2` comes out as a breaking change is made. `v2` is incompatible with `v1`.
+- `v0` stops releasing when `v1` comes out, while `v1` and `v2` can be developed individually. For example, you can see that `v1.1.1` is released after `v2.1.0`
 - It strictly follows [Semantic Versioning Specifications](https://semver.org/spec/v2.0.0.html#semantic-versioning-specification-semvers)
 
-**Another thing that we need to keep in mind is to actually release these versions so that Golang package management tools, for example [vgo](https://github.com/golang/go/wiki/vgo), can retrieve them. For instance, you can achieve this by [creating github releases](https://help.github.com/en/articles/creating-releases) with those semver tags if you are using gihub to manage your codebase.**
+### Problem
+**The major problem here is how to how to release `v2`. This is what Semantic Import Versioning is trying to solve.**
 
-### Solution A: Major subdirectory
 
-The first solution actually separates `v1` and `v2` into two packages. Here is the how the `libfoo` package is organized in this solution:
+## Method A: Major subdirectory
+
+This method actually separates `v1` and `v2` into two packages. Here is the how the `libfoo` package is organized in this solution:
 
 ```go
 libfoo/
@@ -98,21 +125,19 @@ libfoo/
     |-- interface.go
 ```
 
-You can see that `v1` and `v2` are actually two packages as they have different import path (`github.com/path/to/libfoo` and `github.com/path/to/libfoo/v2`). The idea behind this solution is use `v2` in import path to indicate the `Major` version in Semantic version. The following picture shows this relationship:
+You can see that `v1` and `v2` are actually two packages as they have different import path (`github.com/path/to/libfoo` and `github.com/path/to/libfoo/v2`). The initial codebase of `v2` is copied from `v1`.  The idea behind this solution is use `v2` in import path to indicate the `Major` version in Semantic version. The following picture shows this relationship:
 
 [image]
 
-You can see that:
-- **`v1` (and `v0`) is omitted from import paths and it is mandatory in go modules. Therefore, you'd better follow this principle if you are thinking of converting your packages into go modules one day.** You can check [this discussion](https://github.com/golang/go/issues/24301#issuecomment-371228664) if you want to know why they made such requirement.
+From the picture you can see that:
+- **`v1` (and `v0`) is omitted from import paths and this is mandatory in go modules. Therefore, you'd better follow this principle if you are thinking of converting your packages into go modules one day.** You can check [this discussion](https://github.com/golang/go/issues/24301#issuecomment-371228664) if you want to know why they made such requirement.
 - `v2` in the import path indicates its wants to use `libfoo` `v2`.
-- A single build can use both `v1` and `v2` since they are technically two packages.
+- A single build can use both `v1` and `v2` as they are technically two packages.
 - It does not require go modules.
 
-However, you will not be able to get specific versions of `v1` and `v2` simultaneously in a single build without go modules. This is because creating a release in github is like creating a snapshot for the whole repo, not just for the single package. For
+### Make It Work with Go Modules
 
-#### How It Works with Go Modules
-
-It is very easy to convert the `libfoo` package to go modules with this solution. What we need to do running the following commands to convert `v1` and `v2` to go modules:
+It is very easy to convert the `libfoo` package to go modules. What we need to do running the following commands to convert `v1` and `v2` to go modules:
 
 ```
 cd /path/to/solutiona/libfoo
@@ -144,7 +169,48 @@ require rsc.io/quote v1.5.2
 
 Take `v1's` `go.mod` as an example, It declares `libfoo` (`v1`) as a module and then lists all the dependencies. `v1` and `v2` are considered different go modules.
 
-With Go Modules, you can  
+### Releasing
+
+#### Without Go Modules
+
+Without Go Modules, you can release the versions listed in the `CHANGELOG.md` file by creating github releases. However, this does not allow you use specific versions of `v1` and `v2` simultaneously in a single build. This is because creating a release in github is like creating a snapshot for the whole repo, not just for the single package. For example, suppose you want to use `v1.0.0` and `v2.1.0` in a single build and `libfoo` is released with the following order:
+
+```
+v1.0.0
+v1.1.0
+v2.0.0
+v2.1.0
+v1.1.1
+```
+
+You cannot grab `v1.0.0` as it doesn't has `v2.1.0`. You can only require either `v2.1.0` or `v1.1.1` as they all containers `v2.1.0` and later versions of `v1.0.0`. Suppose you require `v1.1.1`, then you will get `v1.1.1` and `v2.1.0`. Your requirement of `v1.0.0` will not be satisfied but this is **OK**. As this fits the minimal
+
+
+#### With Go Modules
+
+
+
+#TODO: Need to write how to release
+
+
+### Advantage
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+**Another thing that we need to keep in mind is to actually release these versions so that Golang package management tools, for example [vgo](https://github.com/golang/go/wiki/vgo), can retrieve them. For instance, you can achieve this by [creating github releases](https://help.github.com/en/articles/creating-releases) with those semver tags if you are using gihub to manage your codebase.**
 
 
 

@@ -188,21 +188,58 @@ You cannot grab `1.0.0` as it does not have `2.1.0`. You can only require either
 
 #### With Go Modules
 
-Things become easier when using Go Modules. With Go Modules, these versions are released by tagging specific commits using git.
+Things become easier when using Go Modules. With Go Modules, these versions are released by tagging specific commits using git. Here are what I did to release these versions:
 
+1. Cd to the root directory of `solutiona/libfoo`.
+2. Comment out `Method5()` in v1 interface and commit/push: **git commit ./libfoo/v1/interface.go -q -m "Comment out Method5() in libfoo v1 interface to roll it back to v1.0.0" && git push origin master -q**
+3. Create a tag for the above changes: *git tag golang/semantic_import_versioning/example/solutiona/libfoo/v1.0.0 && git push -q origin master golang/semantic_import_versioning/example/solutiona/libfoo/v1.0.0*
+4. Uncomment `Method5()` in v1 interface (which simulates adding `Method5()` for `v1`), commit/push changes and create the tag `golang/semantic_import_versioning/example/solutiona/libfoo/v1.1.0`
+5. Comment out `Method6()` in v2 interface, commit/push changes and create the tag `golang/semantic_import_versioning/example/solutiona/libfoo/v2.0.0`
+6. Uncomment `Method6()` in v2 interface (which simulates adding `Method6()` for `v2`), commit/push changes and create the tag `golang/semantic_import_versioning/example/solutiona/libfoo/v2.1.0`
+7. Pretend that I fix a bug in `Method4()` in `v1`, commit/push changes and create the tag `golang/semantic_import_versioning/example/solutiona/libfoo/v1.1.1`
+8. Cd to `path/to/solutiona/demo`, create `main.go` and add the following code:
+
+```go
+package main
+
+import "github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo"
+import libfooV2 "github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo/v2"
+
+func main(){
+	libFooV1 := libfoo.NewClient()
+	libFooV2 := libfooV2.NewClient()
+
+	libFooV1.Method4()
+	libFooV2.Method4()
+}
 ```
-1. Cd to the root directory of `libfoo`
-2.
-```
 
+9. Initialize `path/to/solutiona/demo` as a go module: **go mod init github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/demo**
 
+10. Build: `go build`
 
-#TODO: Need to write how to release
+11. Downgrade `libfoo` `v1` to `v1.0.0`: **go get github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo@v1.0.0**
 
+12. Build again: `go build`
+
+Key points:
+
+1. A version is release by creating a tag and tag MUST follow the format **<module_path>/v<Major>.<Minor>.<Patch>.** In this case, `github.com/aaronzhuo1990/blogs` is the repo URL while `golang/semantic_import_versioning/example/solutiona/libfoo` is the module path of `libfoo` `v1`. **This is the key point to make Go able to retrieve a specific version for a module.**
+2. A tag can be created by using `git tag` command or creating a github release, as long as you use correct format for the tag name. For example, `v1.1.0` is created by using `git tag` command while `v1.1.1` is creating by creating a github release. You can check [release history](https://github.com/aaronzhuo1990/blogs/tags) of this example for more details.
+3. `go module init` will grab the latest version for `v1` and `v2`, which is `v1.1.1` and `v2.1.0` in this case. You need to run `**go get github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo@v1.0.0**` to downgrade `v1` by youself.
+4. A tag or a release is essentially a snapshot for the whole repo, which is `github.com/aaronzhuo1990/blogs` in this example. However, with Go Modules, the specific version of `v1` and `v2` can be simultaneously installed. In this case, `v1.0.0` and `v2.1.0` are simultaneously installed. You can prove this modifying `libFooV1.Method4()` to `libFooV1.Method5()` and run `go build`. It will fail as `v1.0.0` does not have `Method5()`.
 
 ### Advantage
 
+- It does not require Go Modules even though it has some limitations. This does not require you to update Go to v1.11 or later version.
+- It is clear as each `Major` version owns its codebase.
+- It works well with Go Modules.
 
+
+### Disadvantage
+
+- Its file structure is strange. From the example, you can see that the root directory of `v1` is `path/to/solutiona/libfoo` while the root directory of `v2` is path/to/solutiona/libfoo/v2`. This somehow means `v2` lives inside `v1`. The position of `CHANGELOG.md` file also demonstrates this awkwardness.
+- A lot of code is duplicated between `v1` and `v2`, as `v2` is created by copying and pasting the codebase of `v1`.
 
 
 

@@ -79,11 +79,11 @@ func main() {
 }
 ```
 
-Take `var sb = (map[string]bool)(nil) == (map[string]bool)(nil)` as an example, the reason why two `nil` values of a same type (`map[string]bool`) are not comparable is because Go does not support comparison in slice, map and function types. *You can see that we are comparing two values of a non-comparable type in this case. That is why it fails.**
+Take `var sb = (map[string]bool)(nil) == (map[string]bool)(nil)` as an example, the reason why two `nil` values of a same type (`map[string]bool`) are not comparable is because Go does not support comparison in slice, map and function types. **You can see that we are comparing two values of a non-comparable type in this case. That is why it fails.**
 
 But the following code works and results are true:
 
-```
+```go
     var _ = ([]string)(nil) == nil              // true
     var sb = (map[string]bool)(nil) == nil      // true
     var _ = (func())(nil) == nil                // true
@@ -120,6 +120,7 @@ func main() {
 ```
 
 Explanation:
+
 - **An interface value consists of a dynamic type and a dynamic value.** `interface{}(nil)` declares an interface value with `{type: nil, value: nil}`.
 - The non-interface value is converted to the type of the interface value before making the comparison with an interface value. In this example, `(*int)(nil)` is converted to an interface value with `{type: *int, value: nil}`.
 - Two `nil` interface values are equivalent only when they carry the same type. In this case, the converted interface value `{type: *int, value: nil}` has a concrete dynamic type but the other interface value has not. That is why the comparison result is `false`.

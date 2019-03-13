@@ -243,6 +243,24 @@ Key points:
 
 
 
+## Method A: Major Branch
+
+There is an alternative way to realize Semantic Import Versioning but it only works with Go Modules. The following steps demonstrate how to do it:
+
+- Create a branch (say `libfoo-solutionb-v1`) based on master branch for `v1`. Use this branch to add features or fix bugs for `v1`.
+- Use master branch to develop `v2`.
+- Update the go.mod file to include a /v2 at the end of the module path in the module directive in master branch (e.g., module semantic_import_versioning/example/solutionb/libfoo/v2)
+
+
+
+
+### Advantage
+- It does not require Go Modules, even though Go Modules is recommended as it is the core of the next generation of Go package management.
+- It reduces a lot of code between `v1` and `v2`.
+
+### Disadvantage
+- I don't know how to manage `CHANGELOG.md` file for `v1` and `v2`. It looks like it is required for having `CHANGELOG.MD` for `v1` and `v2`.
+- A repo may be exploded with a bunch of branches when it is managing a lot of modules. Moreover, the master branch is not unique anymore, as old `Major` versions now are using their own branches as master branch.
 
 
 
@@ -255,10 +273,6 @@ Key points:
 
 
 **Another thing that we need to keep in mind is to actually release these versions so that Golang package management tools, for example [vgo](https://github.com/golang/go/wiki/vgo), can retrieve them. For instance, you can achieve this by [creating github releases](https://help.github.com/en/articles/creating-releases) with those semver tags if you are using gihub to manage your codebase.**
-
-
-
-
 
 
 

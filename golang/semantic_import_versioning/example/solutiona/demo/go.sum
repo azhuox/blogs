@@ -1,7 +1,5 @@
-github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo v1.0.0 h1:a/bLKfzkY/u687uDUW7mfZZ5kxmXnf0QOvbYmJokT2Q=
+github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo v1.0.0 h1:3dmIvW1K1eFfzu0F6girUJarMOqmFX6U/cXEK6I49vM=
 github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo v1.0.0/go.mod h1:6OnigoNgFDTXaKkSH4Y+iKaQQ0ACpnE2qaITOcP7ZU4=
-github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo v1.1.1 h1:Wnf8yG/d55rT/Cn1wOqt7HzDFkQqoAhcMMPQuisavZQ=
-github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo v1.1.1/go.mod h1:6OnigoNgFDTXaKkSH4Y+iKaQQ0ACpnE2qaITOcP7ZU4=
 github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo/v2 v2.1.0 h1:sPP56L+RxYyPd/NyzCpkxG7ywVUerHAM8/QIVMG3mLI=
 github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo/v2 v2.1.0/go.mod h1:rRYp9zgKAWZY2jnuT3qsxPrdUSz+UIey2MG2upo0+JU=
 golang.org/x/text v0.0.0-20170915032832-14c0d48ead0c h1:qgOY6WgZOaTkIIMiVjBQcw93ERBE4m30iBm00nkL0i8=

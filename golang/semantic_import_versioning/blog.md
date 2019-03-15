@@ -190,8 +190,8 @@ You cannot grab `1.0.0` as it does not have `2.1.0`. You can only require either
 
 Things become easier when using Go Modules. With Go Modules, these versions are released by tagging specific commits using git. Here are what I did to release these versions:
 
-1. Cd to the root directory of `solutiona/libfoo`.
-2. Comment out `Method5()` in v1 interface and commit/push: **git commit ./libfoo/v1/interface.go -q -m "Comment out Method5() in libfoo v1 interface to roll it back to v1.0.0" && git push origin master -q**
+1. Cd to the root directory of `solutiona`.
+2. Comment out `Method5()` in v1 interface and commit/push: **git commit ./libfoo/interface.go -q -m "Comment out Method5() in libfoo v1 interface to roll it back to v1.0.0" && git push origin master -q**
 3. Create a tag for the above changes: *git tag golang/semantic_import_versioning/example/solutiona/libfoo/v1.0.0 && git push -q origin master golang/semantic_import_versioning/example/solutiona/libfoo/v1.0.0*
 4. Uncomment `Method5()` in v1 interface (which simulates adding `Method5()` for `v1`), commit/push changes and create the tag `golang/semantic_import_versioning/example/solutiona/libfoo/v1.1.0`
 5. Comment out `Method6()` in v2 interface, commit/push changes and create the tag `golang/semantic_import_versioning/example/solutiona/libfoo/v2.0.0`

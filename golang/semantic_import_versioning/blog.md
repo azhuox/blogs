@@ -245,21 +245,24 @@ Key points:
 
 ## Method A: Major Branch
 
-There is an alternative way to realize Semantic Import Versioning but it only works with Go Modules. The following steps demonstrate how to do it:
+There is an alternative way to realize Semantic Import Versioning. But this method only works with Go Modules. The following steps demonstrate how to do it:
 
-- Create a branch (say `libfoo-solutionb-v1`) based on master branch for `v1`. Use this branch to add features or fix bugs for `v1`.
-- Use master branch to develop `v2`.
-- Update the go.mod file to include a /v2 at the end of the module path in the module directive in master branch (e.g., module semantic_import_versioning/example/solutionb/libfoo/v2)
-
-
+1. Cd to the root directory of `solutionb`.
+- Comment out `Method5()` in v1 interface, commit/push changes and create the tag `golang/semantic_import_versioning/example/solutionb/libfoo/v1.0.0`
+- Uncomment `Method5()` in v1 interface, commit/push changes and create the tag `golang/semantic_import_versioning/example/solutionb/libfoo/v1.1.0`
+- Create a branch (say `go-semver-solutionb-libfoo-v1`) based on master branch for `v1`. We are going to use this branch instead of master branch to add features of fix bugs for `v1`.
+- Switch back to master branch, update the go.mod file to include a /v2 at the end of the module path in the module directive (module semantic_import_versioning/example/solutionb/libfoo/v2)
+- Modify the signature of Method5(), commit/push changes and create the tag `golang/semantic_import_versioning/example/solutionb/libfoo/v2.0.0`
+- Add Method6(), commit/push changes and create the tag `golang/semantic_import_versioning/example/solutionb/libfoo/v2.1.0`
+- Switch back to branch `go-semver-solutionb-libfoo-v1`, fix a bug in Method4(), commite/push changes and then create the tag `golang/semantic_import_versioning/example/solutionb/libfoo/v1.1.1` based on this branch other than master branch.
 
 
 ### Advantage
-- It does not require Go Modules, even though Go Modules is recommended as it is the core of the next generation of Go package management.
 - It reduces a lot of code between `v1` and `v2`.
+- The file structure of `v1` and `v2` makes way more sense.
 
 ### Disadvantage
-- I don't know how to manage `CHANGELOG.md` file for `v1` and `v2`. It looks like it is required for having `CHANGELOG.MD` for `v1` and `v2`.
+- I don't know how to manage `CHANGELOG.md` file for `v1` and `v2`. It looks like it is required for having `CHANGELOG.md` for `v1` and `v2`.
 - A repo may be exploded with a bunch of branches when it is managing a lot of modules. Moreover, the master branch is not unique anymore, as old `Major` versions now are using their own branches as master branch.
 
 

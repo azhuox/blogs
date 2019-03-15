@@ -52,7 +52,7 @@ func (c *clientImpl) Method4() error {
 
 	// Concrete implementation details are omitted
 
-	fmt.Println("v1 " + quote.Hello())
+	fmt.Println("solution B: v1 " + quote.Hello())
 	return nil
 }
 

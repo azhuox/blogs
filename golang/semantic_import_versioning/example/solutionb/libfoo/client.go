@@ -48,11 +48,10 @@ func (c *clientImpl) Method3() error {
 //
 func (c *clientImpl) Method4() error {
 
-	// Add this comment to pretend to fix a bug in this method
-
 	// Concrete implementation details are omitted
 
 	fmt.Println("solution B: v1 " + quote.Hello())
+	fmt.Println("I am bug and I got fixed in v1.1.1")
 	return nil
 }
 

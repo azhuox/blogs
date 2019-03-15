@@ -64,3 +64,12 @@ func (c *clientImpl) Method5(param1 int, param2 string) error {
 
 	return nil
 }
+
+// Method6 - the implementation of `Method6` method defined in the `Client` interface
+//
+func (c *clientImpl) Method6() error {
+
+	// Concrete implementation details are omitted
+
+	return nil
+}

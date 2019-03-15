@@ -58,7 +58,7 @@ func (c *clientImpl) Method4() error {
 
 // Method5 - the implementation of `Method5` method defined in the `Client` interface
 //
-func (c *clientImpl) Method5() error {
+func (c *clientImpl) Method5(param1 int, param2 string) error {
 
 	// Concrete implementation details are omitted
 

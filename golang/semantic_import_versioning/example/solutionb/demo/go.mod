@@ -2,4 +2,4 @@ module github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/
 
 go 1.12
 
-require github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutionb/libfoo v1.1.0
+require github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutionb/libfoo v1.0.0

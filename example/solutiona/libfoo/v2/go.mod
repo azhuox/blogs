@@ -1,4 +1,4 @@
-module aaronzhuo1990/blogs/example/solutiona/libfoo/v2
+module github.com/aaronzhuo1990/blogs/example/solutiona/libfoo/v2
 
 go 1.12
 

@@ -57,16 +57,7 @@ func (c *clientImpl) Method4() error {
 
 // Method5 - the implementation of `Method5` method defined in the `Client` interface
 //
-func (c *clientImpl) Method5(param1 int, param2 string) error {
-
-	// Concrete implementation details are omitted
-
-	return nil
-}
-
-// Method6 - the implementation of `Method6` method defined in the `Client` interface
-//
-func (c *clientImpl) Method6() error {
+func (c *clientImpl) Method5() error {
 
 	// Concrete implementation details are omitted
 

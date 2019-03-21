@@ -19,6 +19,42 @@ What is included in this blog:
 
 Go Modules are an experimental opt-in feature in Go 1.11 with the plan of finalizing feature for Go 1.13. The definition of a Go Module from [this proposal](https://go.googlesource.com/proposal/+/master/design/24301-versioned-go.md) is "is a group of packages that share a common prefix, the module path, and are versioned together as a single unit". In my opinion, the idea behind Go Modules is break a giant Go repo into multiple smaller modules and adopts Semantic Versioning in modules to solve Go [dependency hell](https://en.wikipedia.org/wiki/Dependency_hell) problems, like conflicting dependencies or diamond dependency.
 
+A Go module consists of one or more packages. It group the package(s) together as an unit which can be released and retrived by Go. Here is an example:
+
+```go
+my-repo:
+    my-thing:
+        go.mod
+        my-pkg-1:
+            file1.go
+            file2.go
+        my-pkg-2:
+            file1.go
+            file2.go
+```
+
+`go.mod` file in `my-thing` folder:
+
+```go
+module github.com/path/to/my-thing
+
+go 1.12
+
+require (
+	golang.org/x/net v0.0.0-20190313220215-9f648a60d977
+	...
+)
+
+```
+
+In this example, `go.mod` in `my-thing` folder indicates the module `my-thing` consists of two go packages: `my-pkg-1` and `my-pkg-2`. This means `my-pkg-1` and `my-pkg-2` now are released together and can be retrieved as a unit by `go get`.
+
+Here is the summary of the relationship between a package, a module and a repo.
+
+- A Package is essentially a directory with some code files. It provides code reusability across the Go applications.
+- A Module consists of one or more packages. It groups the package(s) as an unit, which should be released and can be retrieved together by Go (after 1.11).
+- A Repo is a group of Go modules and Go packages (Normally, you only need to convert go packages that you want to expose to go modules).
+
 ## What is Semantic Import Versioning
 
 [Semantic Import Versioning](https://research.swtch.com/vgo-import) is a package management method for adopting Semantic Versioning in Golang packages. It is designed for versioning go package with the following rules:
@@ -231,7 +267,7 @@ Key points:
 
 ### Advantage
 
-- It does not require Go Modules even though it has some limitations. This does not require you to update Go to v1.11 or later version.
+- It does not require Go Modules even though it has some limitations without Go Modules. Plus, this does not require you to update Go to v1.11 or later version.
 - It is clear as each `Major` version owns its codebase.
 - It works well with Go Modules.
 
@@ -266,40 +302,14 @@ There is an alternative way to realize Semantic Import Versioning. But this meth
 - A repo may be exploded with a bunch of branches when it is managing a lot of modules. Moreover, the master branch is not unique anymore, as old `Major` versions now are using their own branches as master branch.
 
 
+## Summary
+- Go Modules provides a way for you to group one or more packages into a single module. While Semantic Import Versioning is a guide for introducing Semantic Versioning into Go Packages and Modules.
+- There are two ways to realize Semantic Import Versioning and each of them has its own advantage and disadvantage: The first method (Major Branch) is easier and works without Go Modules and it allows you to convert your packages to modules very easily. However, it duplicates a lot of code. The second method (Major Branch) does not duplicate any code but may explode the repo since each old `Major` version needs its own `master` branch. Additionally, it only works with Go Modules.
+- It is mandantory not to put `v1` into package path or module path in Go Modules. So you may want to stop using it if you are thinking of converting yours packges to go modules one day.
 
+## What Is Next?
 
-
-
-
-
-
-
-
-**Another thing that we need to keep in mind is to actually release these versions so that Golang package management tools, for example [vgo](https://github.com/golang/go/wiki/vgo), can retrieve them. For instance, you can achieve this by [creating github releases](https://help.github.com/en/articles/creating-releases) with those semver tags if you are using gihub to manage your codebase.**
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+This blog is majorly talking about how to realize Semantic Import Versioning other than Go Modules. You may want to read [this article](https://github.com/golang/go/wiki/Modules) if you are curious about the machanism of go modules.
 
 
 ## The Problems We Have
@@ -318,49 +328,6 @@ Take [siteinfo package](https://github.com/vendasta/website-pro-libs/tree/master
 The first problem is there is no way to maintain old `Major` versions. You can see the `siteinfo` package has two major versions `v1` and `v2`. However, `v1` is not maintainable anymore as it lost the codebase after `v2` was released, which means you it is impossible to add new features or fix bugs for `v1`. This normally is not a huge deal if the package is only used within the organization, but it becomes a headache once the package (like a Golang SDK we wrote for clients) is consumed by the clients outsides the organization.
 
 The second problem is there is no way to retrieve specific versions
-
-
-
-
-
-
-###
-
-
-
-
-## What is Semantic Versioning?
-
-- Major, Minor, Patch
-- Alpha, Beta, Garma
-
-### Workflow (How to user it)
-- Difference between major version 0 and major version 1
-
-- What is a breaking change?
-
-
-## What we Have
-- Take gosdks as an example
-- Our Version is not a real version control
-- Potential Problems (breaking changes | dependency hell)
-
-
-## Potential Solutions
-
-https://github.com/golang/go/wiki/Modules#releasing-modules-all-versions
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -1,25 +1,25 @@
 # Semantic Import Versioning In Go
 
 What is included in this blog:
-- A discussion about the problems we are facing in Go package versioning.
+- A brief introduction of Go Modules.
 - A brief introduction  of Semantic Import Versioning in Go.
-- A discussion about how to to use Semantic Import Versioing with and without Go module.
+- A discussion about how to to realize Semantic Import Versioing with and without Go module.
 
 
 ## prerequisites
 
 ### Semantic Versioning
 
-[Semantic Versioning](https://semver.org/) (semver) is currently the most widely used version scheme in [Software Versioning](https://en.wikipedia.org/wiki/Software_versioning). It uses a sequence of three digital numbers with the format `Major.Minor.Patch` with the following rules to indicate an unique status of a computer software:
+[Semantic Versioning](https://semver.org/) (semver) is currently the most widely used version scheme in [Software Versioning](https://en.wikipedia.org/wiki/Software_versioning). It uses a sequence of three digital numbers with the format `Major.Minor.Patch` and with the following rules to indicate an unique status of a computer software:
 - Increase the `Major` version when you make incompatible breaking changes to the software.
 - Increase the `Minor` version when you add backwards-compatible features to the software.
 - Increase the `Patch` version when you fix bugs in a backwards-compatible manner for the software.
 
 ### Go Modules
 
-Go Modules are an experimental opt-in feature in Go 1.11 with the plan of finalizing feature for Go 1.13. The definition of a Go Module from [this proposal](https://go.googlesource.com/proposal/+/master/design/24301-versioned-go.md) is "is a group of packages that share a common prefix, the module path, and are versioned together as a single unit". In my opinion, the idea behind Go Modules is break a giant Go repo into multiple smaller modules and adopts Semantic Versioning in modules to solve Go [dependency hell](https://en.wikipedia.org/wiki/Dependency_hell) problems, like conflicting dependencies or diamond dependency.
+Go modules are an experimental opt-in feature in Go 1.11 with the plan of finalizing feature for Go 1.13. The definition of a Go module from [this proposal](https://go.googlesource.com/proposal/+/master/design/24301-versioned-go.md) is "a group of packages that share a common prefix, the module path, and are versioned together as a single unit". In my opinion, the idea behind Go Modules is to break a giant Go repo into multiple modules and adopts Semantic Versioning in these modules to solve [dependency hell](https://en.wikipedia.org/wiki/Dependency_hell) problems, like conflicting dependencies or diamond dependency.
 
-A Go module consists of one or more packages. It group the package(s) together as an unit which can be released and retrived by Go. Here is an example:
+Here is an example:
 
 ```go
 my-repo:
@@ -33,7 +33,7 @@ my-repo:
             file2.go
 ```
 
-`go.mod` file in `my-thing` folder:
+`go.mod` file in the `my-thing` folder:
 
 ```go
 module github.com/path/to/my-thing
@@ -47,41 +47,43 @@ require (
 
 ```
 
-In this example, `go.mod` in `my-thing` folder indicates the module `my-thing` consists of two go packages: `my-pkg-1` and `my-pkg-2`. This means `my-pkg-1` and `my-pkg-2` now are released together and can be retrieved as a unit by `go get`.
+`go.mod` defines a module's path and its dependencies. In this example, the module path in `go.mod` indicates it groups anything under the `my-thing` folder (`my-pkg-1` and `my-pkg-2`) as a module. This means `my-pkg-1` and `my-pkg-2` now should be released together and can be retrieved as a unit by `go get`.
 
 Here is the summary of the relationship between a package, a module and a repo.
 
 - A Package is essentially a directory with some code files. It provides code reusability across the Go applications.
-- A Module consists of one or more packages. It groups the package(s) as an unit, which should be released and can be retrieved together by Go (after 1.11).
-- A Repo is a group of Go modules and Go packages (Normally, you only need to convert go packages that you want to expose to go modules).
+- A Module consists of one or more packages. It groups the package(s) as a unit, which should be released and can be retrieved together by Go (after 1.11).
+- A repo is a group of Go modules and Go packages.
 
-## What is Semantic Import Versioning
 
-[Semantic Import Versioning](https://research.swtch.com/vgo-import) is a package management method for adopting Semantic Versioning in Golang packages. It is designed for versioning go package with the following rules:
-- **`The import compatibility rule`: "If an old package (say `libfoo`) and a new package have the same import path, the new package must be backwards compatible with the old package."**
-- **A new package with a different import path (say `libfoo/v2`) must be introduced to distinguish it from the old package if a breaking change occurs.**
+## Semantic Import Versioning
+
+[Semantic Import Versioning](https://research.swtch.com/vgo-import) is a package management method designed for adopting Semantic Versioning in Go packages and modules. It follows the following rules:
+- **The import compatibility rule: "If an old package (say `libfoo`) and a new package have the same import path, the new package must be backwards compatible with the old one."**
+- **If a breaking change occurs, a new package must be released with a different import path (say `libfoo/v2`) to distinguish it from the old one.**
 
 ## What Kinds of Problems It Can Solve?
 
 ### Conflicting Dependencies
-The following picture shows the scenario of Conflicting Dependencies, in which application A depends on `libFoo` 1.2.0 while one of its dependencies `libB` requires `libFoo` 1.9.0, and different versions of libfoo cannot be simultaneously installed. Semantic Import Versioning solves this problem with the [minimal version selection algorithm](https://research.swtch.com/vgo-mvs): The version selected by minimal version selection is always the semantically highest of the versions. In this case, `libFoo` 1.9.0 is selected as it is the highest version. Moreover, based on the specification of semver, 1.9.0 should be back-compatible with 1.2.0 as they have the same `Major` version. Therefore, application A should works with 1.9.0 even though it requires 1.2.0.
+The following picture shows the scenario of Conflicting Dependencies, in which application A depends on `libFoo` v1.2.0 and one of its dependencies `libB` requires `libFoo` v1.9.0. But different versions of libfoo cannot be simultaneously installed. Semantic Import Versioning solves this problem with the [minimal version selection algorithm](https://research.swtch.com/vgo-mvs): The version selected by minimal version selection is always the semantically highest of the versions. In this case, `libFoo` v1.9.0 is selected as it is the highest version. Moreover, based on the specification of Semantic Versioning, v1.9.0 should be back-compatible with v1.2.0 as they have the same `Major` version. Therefore, the application should be able to works with v1.9.0 without any problem even though it requires v1.2.0.
 [image]
 
 ### Diamond Dependency
 
-The following picture shows the scenario of Diamond Dependency, in which application A depends on `libB` and `libC`, both B and C depends on `libD`, but B requires D 1.1.0 and C requires D 2.2.2. Semantic Import Versioning solves this problem by installing both 1.1.0 and 2.2.2 and distinguishing them with import path, for example, `path/to/d` vs `path/to/d/v2`.
+The following picture shows the scenario of Diamond Dependency, in which application A depends on `libB` and `libC`, both B and C depends on `libD`, but B requires D v1.1.0 and C requires D v2.2.2. Semantic Import Versioning solves this problem by installing both versions and distinguishing them with import paths, for example, `path/to/d` v.s. `path/to/d/v2`.
 [image]
+
 
 ## Example
 
-I wrote a dump package called `libfoo` in order to demonstrate how Semantic Import Versioning works. You can check [this repo](https://github.com/aaronzhuo1990/blogs/tree/master/golang/semantic_import_versioning/example/libfoo) for more details about this example.
+I wrote a dump package called `libfoo` to demonstrate how Semantic Import Versioning works. You can check [this repo](https://github.com/aaronzhuo1990/blogs/tree/master/golang/semantic_import_versioning/example/) for more details about this example.
 
 Let us go through this example to see how Semantic Import Versioning works.
 
 
 ### Change Log
 
-A file called `CHANGELOG.md` (under the root folder of the package) is used to record release history of the package. Suppose the following releases need to be released:
+A file called `CHANGELOG.md` (under the root folder of the package) is used to record release history of the package. Suppose the following versions need to be released:
 
 ```
 --------------------------------------------------------------------------------
@@ -137,14 +139,15 @@ A file called `CHANGELOG.md` (under the root folder of the package) is used to r
 ```
 
 From the change log, you can see that:
+
 - The initial development release starts at `0.1.0` and the `Minor` and `Patch` version are increased respectively for each subsequent release and each bug fix release.
-- `1.0.0` is released when the package is ready for production. There is no breaking changes between `v0` and `v1`. `v0` is for internal development while `v1` means most of bugs are fixed, all the features are fully tested and it can be used in production with stability guarantee.
+- `1.0.0` is released when the package is ready for production. There is no breaking changes between `v0` and `v1`. `v0` is for internal development while `v1` means most of bugs are fixed, all the features are fully tested and it can be used in production with the stability guarantee.
 - `v2` comes out as a breaking change is made. `v2` is incompatible with `v1`.
-- `v0` stops releasing when `v1` comes out, while `v1` and `v2` can be developed individually. For example, you can see that `v1.1.1` is released after `v2.1.0`
-- It strictly follows [Semantic Versioning Specifications](https://semver.org/spec/v2.0.0.html#semantic-versioning-specification-semvers)
+- `v0` stops releasing any sub version when `v1` comes out, but `v1` and `v2` can be developed individually. For example, you can see that `v1.1.1` is released after `v2.1.0`.
+- These releases strictly follow [Semantic Versioning Specifications](https://semver.org/spec/v2.0.0.html#semantic-versioning-specification-semvers)
 
 ### Problem
-**The major problem here is how to how to release `v2`. This is what Semantic Import Versioning is trying to solve.**
+**The major problem here is how to how to release `v2` in Go. This is what Semantic Import Versioning is trying to solve.**
 
 
 ## Method A: Major subdirectory

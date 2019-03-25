@@ -66,13 +66,15 @@ Here is the summary of the relationship between a package, a module, and a repos
 
 ### Conflicting Dependencies
 The following picture shows the scenario of Conflicting Dependencies, where application A depends on `libfoo` `v1.2.0` and one of its dependencies `libBb` requires `libfoo` `v1.9.0`. But different versions of `libfoo` cannot be simultaneously installed. Semantic Import Versioning solves this problem using [Minimal Version Selection Algorithm](https://research.swtch.com/vgo-mvs): The version selected by minimal version selection is always the semantically highest of the versions. In this case, `libfoo` `v1.9.0` is selected as it is the highest version. Moreover, based on the specification of Semantic Versioning, `v1.9.0` should be backward-compatible with `v1.2.0` as they have the same `Major` version. Therefore, the application should be able to works with `v1.9.0` without any problem even though it requires `v1.2.0`.
-[image]
+
+![Conflicting Dependencies](https://raw.githubusercontent.com/aaronzhuo1990/blogs/master/golang/semantic_import_versioning/go-semver-conflicting-dependencies.png)
+
 
 ### Diamond Dependency
 
 The following picture shows the scenario of Diamond Dependency, where application A depends on `libb` and `libc`. Both of them depend on `libd`, but `libb` requires `libd` `v1.1.0` and `libc` requires `libd` `v2.2.2`. Semantic Import Versioning solves this problem by installing both versions and distinguishing them with import paths, for example, `path/to/libd` v.s. `path/to/libd/v2`.
-[image]
 
+![Diamond Dependency](https://raw.githubusercontent.com/aaronzhuo1990/blogs/master/golang/semantic_import_versioning/go-semver-diamond-denpendency.png)
 
 ## Example
 
@@ -166,7 +168,7 @@ libfoo/
 
 You can see that `v1` and `v2` are actually two packages as each of them has its own root directory and import path (`github.com/path/to/libfoo` and `github.com/path/to/libfoo/v2`). The initial codebase of `v2` is copied from `v1`.  **The idea behind this solution is embedding `v2` in the import path to indicate the package's `Major` version.** The following picture shows this relationship:
 
-[image]
+![v1 v.s. v2](https://raw.githubusercontent.com/aaronzhuo1990/blogs/master/golang/semantic_import_versioning/go-semver-v1-vs-v2.png)
 
 From the picture you can see that:
 

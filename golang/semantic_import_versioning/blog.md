@@ -87,7 +87,7 @@ Let us go through this example to see how Semantic Import Versioning works.
 
 A file called `CHANGELOG.md` (under the root folder of the package) is used to record the release history of the package. Suppose the following versions need to be released:
 
-```
+```go
 --------------------------------------------------------------------------------
 ## v2
 
@@ -181,7 +181,7 @@ From the picture you can see that:
 
 It is very easy to convert the package `libfoo` to a go module. What we need to do is run the following commands to convert `v1` and `v2` to go modules:
 
-```
+```go
 cd /path/to/solutiona/libfoo
 go mod init github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo
 go: creating new go.mod: module github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo

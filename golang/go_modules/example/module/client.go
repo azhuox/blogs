@@ -28,5 +28,8 @@ func (c *clientImpl) Method2(_ context.Context){
 
 func (c *clientImpl) Method3(_ context.Context){
 	fmt.Println("Method3 in this module, calling internal.Method1()" )
+
+	// Pretend that a bug is fixed
+
 	c.intHelper.Method1()
 }

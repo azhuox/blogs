@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 --------------------------------------------------------------------------------
 ## v2
 
+### 2.0.1
+- Fix a bug in `Method3`
+- NOTE: the package is converted to a module since this release.
+
 ### 2.0.0
 - BREAKING CHANGE: Modify the signature of the method `Method2` to let it accept a context
 

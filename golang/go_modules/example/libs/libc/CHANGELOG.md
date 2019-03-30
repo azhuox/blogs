@@ -9,9 +9,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 --------------------------------------------------------------------------------
 ## v1
 
-### 1.1.0
-- Add `Method3`
-
 ### 1.0.0
 - Production-ready release
 

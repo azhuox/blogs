@@ -21,3 +21,7 @@ func (c *clientImpl) Method1(){
 func (c *clientImpl) Method2(_ context.Context){
 	fmt.Println("Method2 in liba, " + quote.Hello())
 }
+
+func (c *clientImpl) Method3(_ context.Context){
+	fmt.Println("Method3 in liba")
+}

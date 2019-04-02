@@ -4,9 +4,9 @@ import (
 	"time"
 	"golang.org/x/net/context"
 
-	"github.com/aaronzhuo1990/blogs/golang/go_modules/example/micro-service/internal/pkga"
-	"github.com/aaronzhuo1990/blogs/golang/go_modules/example/micro-service/internal/pkgb"
-	"github.com/aaronzhuo1990/blogs/golang/go_modules/example/micro-service/internal/api"
+	pkga "github.com/aaronzhuo1990/blogs/golang/go_modules/example/micro-service/internal/pkga"
+	pkgb "github.com/aaronzhuo1990/blogs/golang/go_modules/example/micro-service/internal/pkgb"
+	api "github.com/aaronzhuo1990/blogs/golang/go_modules/example/micro-service/internal/api"
 )
 
 func main() {

@@ -21,11 +21,11 @@ func NewClient(pkgAClient pkga.Client, pkgBClient pkgb.Client) Client {
 }
 
 func (c *clientImpl) API1(){
-	fmt.Println("API 1 in this pkg A, calling Method1 in pkga")
+	fmt.Println("API 1, calling Method1 in pkga")
 	c.pkgAClient.Method1()
 }
 
 func (c *clientImpl) API2(ctx context.Context){
-	fmt.Println("API 2 in pkg A, calling Method2 in pkgb")
+	fmt.Println("API 2, calling Method2 in pkgb")
 	c.pkgBClient.Method2(ctx)
 }

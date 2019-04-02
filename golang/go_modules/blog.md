@@ -2,14 +2,14 @@
 
 What is included in this blog:
 - A brief introduction of Go modules and Semantic Import Versioning
-- A discussion about how to convert Go libraries to Go modules
-- A discussion about how to convert Go micro services to Go Modules
+- A discussion about how to convert Go libraries in a single repository to Go modules
+- A discussion about how to convert a Go micro service to Go Modules
 
 ## prerequisites
 
 ### Go Modules
 
-[Go Modules](https://blog.golang.org/modules2019) is an experimental opt-in feature in Go 1.11 with the plan of finalizing feature for Go 1.13. The definition of a Go module from [this proposal](https://go.googlesource.com/proposal/+/master/design/24301-versioned-go.md) is "a group of packages that share a common prefix, the module path, and are versioned together as a single unit". **A file called `go.mod` glues all the files and packages under the same root directory together as a unit.** Here is an example:
+[Go Modules](https://blog.golang.org/modules2019) is an experimental opt-in feature in Go 1.11 with the plan of finalizing feature for Go 1.13. The definition of a Go module from [this proposal](https://go.googlesource.com/proposal/+/master/design/24301-versioned-go.md) is "a group of packages that share a common prefix, the module path, and are versioned together as a single unit". Here is a Go module example:
 
 ```go
 path/to/my-repo:
@@ -28,9 +28,9 @@ path/to/my-repo:
 
 [image]
 
-As shown in the picture above, it has two modules `bar` and `mixi`. The module `bar` includes two packages: the package `bar` and the package `foo`.
+As shown in the picture, it has two modules `bar` and `mixi`. Take the module `bar` as an example, it includes two packages: the package `bar` and the package `foo`.
 
-**The `go.mod` under the `path/to/my-repo/bar` directory glues these two packages together as a single unit.** It defines the module's path and its dependencies:
+**The `go.mod` file under the `path/to/my-repo/bar` directory glues these two packages together as a single unit.** The file defines the module's path and its dependencies:
 
 ```go
 module path/to/my-repo/bar
@@ -42,7 +42,7 @@ require (
 )
 ```
 
-Now the package `bar` and `foo` are bundled together as a unit. For example, the import statement imports the module `path/to/my-repo/bar` other than the package `path/to/my-repo/bar/foo` if Go Modules is enabled. **This means the path in the import statement is considered the module path, not the import path (package path).**
+Now the package `bar` and `foo` are bundled together as a unit. For example, the import statement imports the module `path/to/my-repo/bar` other than the package `path/to/my-repo/bar/foo` if Go Modules is enabled. **This means the path in the import statement is recognized as the module path, not the import path (package path).**
 
 ```go
 import "path/to/my-repo/bar/foo"
@@ -52,15 +52,15 @@ func main () {
 }
 ```
 
-In order to use Go Modules, you need to upgrade your Go to v1.11 and set the environmental variable `GO111MODULE=on`.
+**In order to use Go Modules, you need to upgrade your Go to v1.11 and set the environmental variable `GO111MODULE=on`.**
 
 
 ### Semantic Import Versioning
 
-[Semantic Import Versioning](https://research.swtch.com/vgo-import) is a method proposed for adopting [Semantic Versioning](https://semver.org/) in Go packages or modules. The idea behind it is to embedding major version (say `v2`) in the import path (for packages) or the module path (for modules) with the following rules:
+[Semantic Import Versioning](https://research.swtch.com/vgo-import) is a method proposed for adopting [Semantic Versioning](https://semver.org/) in Go packages and modules. The idea behind it is embedding major version (say `v2`) in the import path (for packages) or the module path (for modules) with the following rules:
 
 - `v1` must be omitted from the import path or the module path. [This post](https://github.com/golang/go/issues/24301#issuecomment-371228664) explains the reason.
-- Major versions higher than `v1` must be embedded in the import path or the module path so that Semantic Versioning can be adopted in Go packages or Go Modules.
+- Major versions higher than `v1` must be embedded in the import path or the module path so that Semantic Versioning can be adopted in Go packages and Modules.
 
 The following picture demonstrates the rules above:
 
@@ -74,18 +74,17 @@ With Go Modules and Semantic Import Versioning, you can release your modules by 
 git tag bar/v2.3.3 && git push -q origin master bar/v2.3.3
 ```
 
-**The tag MUST follow the format {pure_module_path}/v{Major}.{Minor}.{Patch} and {pure_module_path} means the module path without repo URL (which is `bar` in this case). The is key point that makes Go able to retrieve Go modules.**
+**The tag MUST follow the format {pure_module_path}/v{Major}.{Minor}.{Patch}. {pure_module_path} represents the module path without the repository URL (which is `bar` in this case). The is key point to make Go able to retrieve Go modules.**
 
 I recommend you reading [this proposal]((https://research.swtch.com/vgo-import)) or [this blog]() if you want to know more details about Semantic Import Versioning.
 
-
-All in all, Go Modules provides a way to group one or more packages as a single retrievable unit, while Semantic Import Versioning proposes a method for adopting Semantic Import in Go packages and go Modules. There two things are the foundation of "versioned Go modules".
+All in all, Go Modules provides a way to group one or more packages as a single Go-retrievable unit, while Semantic Import Versioning proposes a method for adopting Semantic Import in Go packages and Modules. There two things are the foundation of "versioned Go modules".
 
 ## Converting Go Packages to Go Modules
 
 ### General Guide
 
-I wrote [a dummy package](https://github.com/aaronzhuo1990/blogs/tree/master/golang/go_modules/example/module) called `module` for the purpose of demonstrating how to convert Go package(s) to a Go module.
+I wrote [a dummy package](https://github.com/aaronzhuo1990/blogs/tree/master/golang/go_modules/example/module) called `module` for demonstrating how to convert one or more Go packages to a Go module.
 
 #### Converting Go Package(s) to A Go Module
 
@@ -96,9 +95,10 @@ It is very easy to convert Go package(s) to a Go module. Take the package `modul
 2. Convert the package to a module: `go mod init github.com/aaronzhuo1990/blogs/golang/go_modules/example/module`
 3. Compile the module and its dependencies: `go build`
 4. Commit the changes: `git add ./go.mod ./go.sum git commit -q  -m -a "Convert the package to a module" && git push origin master -q`
+5. (Optional) you can run `go mod vendor` to resets the module's vendor directory to include all the packages needed to build and test all of the module's packages. This is the way to provide dependencies to older versions of Go that do not fully understand Go modules. Any Go version later v1.10 does not need this.
 ```
 
-Here is the `go.mod` file generated by the steps above:
+Here is the `go.mod` file which is automatically generated by the steps above:
 
 ```go
 module github.com/aaronzhuo1990/blogs/golang/go_modules/example/module
@@ -111,24 +111,29 @@ require (
 )
 ```
 
+Here is how it grabs the module's dependencies:
+
+It grabs the latest version for the packages that have been converted to modules. For example, `rsc.io/quote v1.5.2`.
+It grabs the latest commit for the packages that have not been converted to modules with the format `v0.0.0-{data}-{commit_id}`. For example, `golang.org/x/net v0.0.0-20190328230028-74de082e2cca`.
+
 #### Releasing
 
-A module can only be used when it is released. The module is released by creating git tags, each tag corresponds to a version. However, there are two problems we need to solve in order to release a module.
+A module can only be used as a module when it is released. A module is released by creating git tags, each tag corresponds to a version. There are two problems we need to solve before releasing a module.
 
-The first problem is how to release `v2` or higher Major version. Go adopts two methods provided by [this proposal](https://research.swtch.com/vgo-module#from_repository_to_modules) to solve this problem: Major Branch and Major Subdirectory. [This blog] demonstrates these two methods and compare their advantage and disadvantage. In this example, I decide to choose Major Subdirectory as it does not require me to duplicate any code.
+The first problem is how to release `v2` or higher Major versions. Go utilizes two methods, Major Branch and Major Subdirectory, which are provided by [this proposal](https://research.swtch.com/vgo-module#from_repository_to_modules) to solve this problem. [This blog] demonstrates these two methods and compare their advantage and disadvantage. I used Major Subdirectory in the following example as it does not require me to duplicate any code.
 
-The second problem is we need to figure out whether converting Go package(s) to Go modules is a breaking change. If so, we need to upgrade the Major version based the specification of [Semantic Versioning](https://semver.org/). If not, we need to decide what versions we need to release. I prefer to just release the latest version listed in the `CHANGELOG.md` file for the following reasons:
+The second problem is we need to figure out whether to consider the conversion from Go package(s) to a Go module a breaking change or not. If so, we need to upgrade the Major version based the specification of [Semantic Versioning](https://semver.org/). If not, we need to decide what versions we need to release. I prefer to just release the latest version in the `CHANGELOG.md` file for the following reasons:
 
-- Converting Go package(s) to Go modules is not a breaking change as the package(s) can still work with Go without Go Modules enabled. So upgrading the Major version for this change is not proper.
-- Converting Go package(s) to Go modules does not add any new feature or fix ant bug. So upgrading the Minor or Patch version does not make sense either.
+- Converting Go package(s) to a Go module is not a breaking change as the package(s) can still work with Go without Go Modules enabled. So it does not make sense to upgrade the Major version for this kind of change.
+- Converting Go package(s) to a Go module does not add any new feature or fix any bug. So upgrading the Minor or Patch version does not make sense either.
 
 
-Let us come back to the example and release it. Here are what we need to do:
-- Append `v2` to the end of the module path (module `github.com/aaronzhuo1990/blogs/golang/go_modules/example/module/v2`) as the latest version of this package (module) is `v2.0.1`
+Let us come back to the module example and release its latest version. Here is what I did:
+- Appended `v2` to the end of the module path (module `github.com/aaronzhuo1990/blogs/golang/go_modules/example/module/v2`) as the latest version of this package is `v2.0.1`
 - Put a note under the `v2.0.1` release note in the `CHANGELOG.md` file to indicate that the package is converted to a module.
 - Release `v2.0.1`: `git tag golang/go_modules/example/module/v2.0.1 && git push -q origin master golang/go_modules/example/module/v2.0.1`
 
-Now without Go Modules, you can still get this package using some Go dependency management tool, for example dep, with following specification in the `go.toml` file:
+Please note that you can still use this package without Go Modules using some Go dependency management tool, for example dep, with following specification in the `go.toml` file:
 
 ```go
 [[constraint]]
@@ -136,15 +141,19 @@ Now without Go Modules, you can still get this package using some Go dependency 
   branch = "master"
 ```
 
-With Go Modules, what you need to do is import/use the module in your Go program and run `go build`. It will automatically grab `golang/go_modules/example/module/v2.0.1` for you.
+With Go Modules, what you need to do is import and use the module in your Go program and run `go build`. It will automatically grab `golang/go_modules/example/module/v2.0.1` for your build.
 
 
 ## Converting Go Libraries to Go Modules
 
-The section above already demonstrates how to convert one or more Go packages to a Go module. This section is talking about how to convert all the Go packages (libraries) within a single repository to Go modules.
+The section above already demonstrates how to convert one or more Go packages to a Go module. This section majorly talks about how to convert all the Go packages (libraries) within a single repository to Go modules.
+
+I wrote three packages `liba` `libb` and `libc` under the `github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/` for demo purpose. `libb` depends on `liba` while `libc` depends on `libb` and `libc`.
+
+A principle that we need to follow in this case is firstly convert the packages that have no dependency on other packages within the same repository, and then convert the packages which dependencies have been converted Go modules. This indicates that we need to convert `liba` first, then `libb` and then `libc` in this case.
 
 
-Convert libc first
+Let us see what will happen if we convert `libc` first:
 
 ```go
 go mod init github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libc
@@ -154,77 +163,67 @@ go build:
 can't load package: package github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libc: unknown import path "github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libc": ambiguous import: found github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libc in multiple modules:
         github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libc (/Users/achuo/go/src/github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libc)
         github.com/aaronzhuo1990/blogs v0.0.0-20190330175117-09a7dbd4a3ce (/Users/achuo/go/pkg/mod/github.com/aaronzhuo1990/blogs@v0.0.0-20190330175117-09a7dbd4a3ce/golang/go_modules/example/libs/libc)
-
 ```
 
-Problem:
-    v0.0.0-20190330175117-09a7dbd4a3ce is the latest commit of the `github.com/aaronzhuo1990/blogs` repository, in includes `liba`, `libb` and `libb`
-
-Solution:
-    Convert
+The cause of the `ambiguous import` problem is Go grabs `github.com/aaronzhuo1990/blogs v0.0.0-20190330175117-09a7dbd4a3ce` to get `liba` and `libb` for satisfying the dependencies of `libc`. However, `github.com/aaronzhuo1990/blogs v0.0.0-20190330175117-09a7dbd4a3ce` also includes a copy of `libc`, which confuses the Go compiler. To fix this, we need to convert `liba` and `libb` to Go modules and release them, so that they can be retrieved and parsed properly by Go.
 
 
+Now let us convert these three libs in the correct order.
 
-Convert liba:
+Convert `liba`:
 
 ```go
-azhuo:liba achuo$ go mod init github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/liba
-go: creating new go.mod: module github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/liba
-azhuo:liba achuo$ go build
-go: finding golang.org/x/net/context latest
-go: finding golang.org/x/net latest
+# Convert liba to a Go module
+#
+cd path/to/libs/liba
+go mod init github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/liba
+    go: creating new go.mod: module github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/liba
+go build
+    go: finding golang.org/x/net/context latest
+    go: finding golang.org/x/net latest
+
 
 # Commit changes
-
+#
 git add ./go.mod ./go.sum
 git commit ./go.mod ./go.sum -q -m "Convert liba  to a module" && git push origin master -q
 
-# Release the latest version (v1.1.0):
 
+# Release the latest version (v1.1.0):
+#
 git tag golang/go_modules/example/libs/liba/v1.1.0 && git push -q origin master golang/go_modules/example/libs/liba/v1.1.0
 ```
 
-convert libb:
+convert `libb`:
 
+```go
+go mod init github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libb
+    go: creating new go.mod: module github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libb
+go build
+    go: downloading github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/liba v1.1.0
+    go: extracting github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/liba v1.1.0
+    ...
+
+git add ./go.mod ./go.sum
+git commit ./go.mod ./go.sum -q -m "Convert libb  to a module" && git push origin master -q
+git tag golang/go_modules/example/libs/libb/v1.0.0 && git push -q origin master golang/go_modules/example/libs/libb/v1.0.0
 ```
 
-azhuo:libb achuo$ go mod init github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libb
-go: creating new go.mod: module github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libb
-azhuo:libb achuo$ go build
-go: finding github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/liba v1.1.0
-go: finding golang.org/x/net/context latest
-go: finding golang.org/x/net latest
-go: downloading github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/liba v1.1.0
-go: extracting github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/liba v1.1.0
-go: finding golang.org/x/text v0.3.0
-go: finding golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
-go: finding rsc.io/quote v1.5.2
-go: finding rsc.io/sampler v1.3.0
-go: finding golang.org/x/text v0.0.0-20170915032832-14c0d48ead0c
-go: finding golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a
+Convert `libc`:
 
-
-azhuo:libb achuo$ git add ./go.mod ./go.sum
-azhuo:libb achuo$ git commit ./go.mod ./go.sum -q -m "Convert libb  to a module" && git push origin master -q
-azhuo:libb achuo$ git tag golang/go_modules/example/libs/libb/v1.0.0 && git push -q origin master golang/go_modules/example/libs/libb/v1.0.0
-
-
-```
-
-Convert libc
-
-```
+```go
 go mod init github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libc
 go build
+    go: downloading github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libb v1.0.0
+    go: extracting github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libb v1.0.0
+    ...
 
-
-azhuo:libc achuo$ git add ./go.mod ./go.sum
-azhuo:libc achuo$ git commit ./go.mod ./go.sum -q -m "Convert libc  to a module" && git push origin master -q
-azhuo:libc achuo$ git tag golang/go_modules/example/libs/libc/v1.0.0 && git push -q origin master golang/go_modules/example/libs/libc/v1.0.0
-
-
+git add ./go.mod ./go.sum
+git commit ./go.mod ./go.sum -q -m "Convert libc  to a module" && git push origin master -q
+git tag golang/go_modules/example/libs/libc/v1.0.0 && git push -q origin master golang/go_modules/example/libs/libc/v1.0.0
 ```
 
+You can see now `libc` is converted to a module and it can retrieve `liba` and `libb` in its build without any problem.
 
 
 ## Converting A Go Micro Service to Go Modules

@@ -1,4 +1,4 @@
-# Semantic Import Versioning In Go
+# Semantic Import Versioning
 
 What is included in this blog:
 

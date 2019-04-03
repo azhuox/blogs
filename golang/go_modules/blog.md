@@ -3,11 +3,13 @@
 What is included in this blog:
 - A brief introduction of Go modules and Semantic Import Versioning
 - A discussion about how to convert Go libraries in a single repository to Go modules
-- A discussion about how to convert a Go micro service to Go Modules
+- A discussion about how to utilize Go Modules in micro services
 
 ## prerequisites
 
 ### Go Modules
+
+#### An Example
 
 [Go Modules](https://blog.golang.org/modules2019) is an experimental opt-in feature in Go 1.11 with the plan of finalizing feature for Go 1.13. The definition of a Go module from [this proposal](https://go.googlesource.com/proposal/+/master/design/24301-versioned-go.md) is "a group of packages that share a common prefix, the module path, and are versioned together as a single unit". Here is a Go module example:
 
@@ -52,8 +54,13 @@ func main () {
 }
 ```
 
+#### How to Enable Go Modules
+
 **In order to use Go Modules, you need to upgrade your Go to v1.11 and set the environmental variable `GO111MODULE=on`.**
 
+### When to Use Go Modules
+
+The purpose of Go Modules is let one or more packages can be versioned, released and retrieved as a single unit. Therefore, the public packages, for example, Go libraries or SDKs, are major targets of Go Modules. You do not need to convert internal packages or any packages within a micro service repository to Go modules. These packages can also import and use modules with Go Modules feature enabled, even if they are not modules.
 
 ### Semantic Import Versioning
 
@@ -226,6 +233,64 @@ git tag golang/go_modules/example/libs/libc/v1.0.0 && git push -q origin master 
 You can see now `libc` is converted to a module and it can retrieve `liba` and `libb` in its build without any problem.
 
 
-## Converting A Go Micro Service to Go Modules
+## Utilizing Go Modules in A Micro Service
 
+I wrote [a dummy micro-service](https://github.com/aaronzhuo1990/blogs/tree/master/golang/go_modules/example/micro-service) in order to demonstrate how to utilize Go Modules in a micro service. Here is its file structure:
+
+```go
+github.com/aaronzhuo1990/blogs/tree/master/golang/go_modules/example/micro-service:
+    - sdks
+        - go
+    - internal
+        - api
+        - pkga
+        - pkgb
+    - server
+        - main.go
+    - vendor
+    - Gopkg.toml
+    - Gopkg.lock
+    - Dockerfile
+```
+
+
+I want to mention that the `internal/pkgb` package is using `libc` package that we just converted to a Go module above. In this case, `libc` is retrieved (with `liba` and `libb`) as a package when Go Modules is not enabled and it is retrieved individually as a single unit when Go Modules is enabled.
+You can also see that the micro service is built as a docker image with the following Dockerfile:
+
+```go
+FROM golang:1.12-alpine3.9
+
+RUN apk add --update \
+    ca-certificates \
+    git
+
+COPY . $GOPATH/src/github.com/aaronzhuo1990/blogs/golang/go_modules/example/micro-service
+RUN go build -o /usr/bin/micro-service github.com/aaronzhuo1990/blogs/golang/go_modules/example/micro-service/server && rm -rf $GOPATH/*
+
+ENTRYPOINT ["/usr/bin/micro-service"]
+```
+
+### Converting Public Packages to Go Modules
+
+In this case, the `sdks/go` package is the only package that gets publicly used. Therefore, we only need to convert this package to a module:
+
+```
+go mod init github.com/aaronzhuo1990/blogs/golang/go_modules/example/micro-service/sdks/go
+go build
+    ...
+git add ./go.mod ./go.sum
+git commit ./go.mod ./go.sum -q -m "Convert micro-service/sdks/go to a module" && git push origin master -q
+git tag golang/go_modules/example/micro-service/sdks/go/v1.0.2 && git push -q origin master golang/go_modules/example/micro-service/sdks/go/v1.0.2
+```
+
+### Utilizing Go Modules in the Micro Service
+
+It is very easy convert the micro service to utilize Go Modules. What you need to is add `ENV GO111MODULE=on` to enable Go Modules feature in the Dockerfile and then remove `Gopkg.toml`, `Gopkg.lock` and the whole `vendor` directory.
+
+## Summary
+
+- Go Modules is a feature which allows you group one or more packages to a single unit which can be released and retrieved together.
+- Semantic Import Versioning is a method for adopting Semantic Versioning to Go packages and modules.
+- Only the packages which are publicly used, for example, Go libraries and SDKs, need to convert to Go modules
+- It is very easy to replace a legacy Go package management tool (e.g. dep) with Go modules.
 

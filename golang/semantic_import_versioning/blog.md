@@ -65,15 +65,15 @@ Here is the summary of the relationship between a package, a module, and a repos
 - **The import compatibility rule: If an old package (say `libfoo`) and a new package have the same import path, the new package must be backward-compatible with the old one.**
 - **If a breaking change occurs, a new package with a different import path (say `libfoo/v2`) must be introduced to distinguish it from the old one.**
 
-## What Kinds of Problems It Can Solve?
+### What Kinds of Problems It Can Solve?
 
-### Conflicting Dependencies
+#### Conflicting Dependencies
 The following picture shows the scenario of Conflicting Dependencies, where application A depends on `libfoo` `v1.2.0` and one of its dependencies `libb` requires `libfoo` `v1.9.0`. But different versions of `libfoo` cannot be simultaneously installed. Semantic Import Versioning solves this problem using [Minimal Version Selection Algorithm](https://research.swtch.com/vgo-mvs): The version selected by minimal version selection is always the semantically highest of the versions. In this case, `libfoo` `v1.9.0` is selected as it is the highest version. Moreover, based on the import compatibility rule, `v1.9.0` should be backward-compatible with `v1.2.0` as they have the same import path (which means they have the same `Major` version). Therefore, the application should be able to work with `v1.9.0` without any problem even though it requires `v1.2.0`.
 
 ![Conflicting Dependencies](https://raw.githubusercontent.com/aaronzhuo1990/blogs/master/golang/semantic_import_versioning/go-semver-conflicting-dependencies.png)
 
 
-### Diamond Dependency
+#### Diamond Dependency
 
 The following picture shows the scenario of Diamond Dependency, where application A depends on `libb` and `libc`. Both of them depend on `libd`, but `libb` requires `libd` `v1.1.0` and `libc` requires `libd` `v2.2.2`. Semantic Import Versioning solves this problem by installing both versions and distinguishing them with import paths (`path/to/libd` v.s. `path/to/libd/v2`). `libd` `v1` and `v2` are considered two different packages as they have different import paths.
 
@@ -155,7 +155,7 @@ From the changelog, you can see that:
 **The major problem here is how to how to release `v2` in Go. This is what Semantic Import Versioning is trying to solve.** There are two methods to realize Semantic Import Versioning: Major subdirectory and Major Branch.
 
 
-## Method A: Major subdirectory
+### Method A: Major subdirectory
 
 This method actually separates `v1` and `v2` into two packages by giving each of them its own root directory. Here is how the `libfoo` package is organized in this solution:
 
@@ -180,7 +180,7 @@ From the picture you can see that:
 - A single build can use both `v1` and `v2` as they are essentially two packages.
 - It does not require to convert your packages to go modules.
 
-### Make It Work with Go Modules
+#### Make It Work with Go Modules
 
 It is very easy to convert both `v1` and `v2` to Go modules. What we need to do is run the following commands to convert them to Go modules:
 
@@ -217,9 +217,9 @@ require rsc.io/quote v1.5.2
 Take `v1's` `go.mod` as an example, It declares `libfoo` (`v1`) as a module and then lists all of its dependencies. `v1` and `v2` are considered two different go modules as they own different module paths.
 
 
-### Releasing
+#### Releasing
 
-#### Without Go Modules
+##### Without Go Modules
 
 Without Go Modules, you can release the versions listed in the `CHANGELOG.md` file by either creating git tags or creating [Github Releases](https://help.github.com/en/articles/creating-releases) (Creating a GitHub release is essentially creating a git tag). However, without Go Modules enabled, you will not be able to install specific versions of `v1` and `v2` simultaneously in a single build. This is because creating a tag or a release is like creating a snapshot for the whole repository, not just for the single package. A `v2` release will also include the latest version of `v1` and vice versa. **Moreover, the existing Go package management tool can only retrieve dependencies with the repository granularity, not the package or module granularity.** Suppose `libfoo` has released the following versions (with the order from up to down) and you want to use `v1.0.0` and `v2.1.0` in a single build:
 
@@ -234,7 +234,7 @@ v1.1.1
 You cannot grab `v1.0.0` as it does not have `v2.1.0`. You can only require either `v2.1.0` or `v1.1.1` as they all container `v2.1.0` and `v1.1.x` newer than `1.0.0`. Suppose you require `v2.1.0`, then you will get `v1.1.0` and `v2.1.0` (`v2.1.0` includes all the changes introduced by `v1.1.0`). **In this case, the requirement of `v1.0.0` will not be satisfied but this is OK, as either `v1.1.0` or `v1.1.1` should be backward-compatible with `v1.0.0` provided all the releases follow the import compatibility rule.**
 
 
-#### With Go Modules
+##### With Go Modules
 
 Things become easier when Go Modules is used. With Go Modules, these versions can be released by tagging specific git commits or creating github releases. Here are what I did to release these versions:
 
@@ -286,21 +286,21 @@ Key points:
 5. Please note that in this example, I directly committed/pushed changes into the master branch just for simplifying the demo workflow. This is not a good practice. You are supposed to create a branch, commit/push changes, create a pull request and merge the changes into master branch in real development.
 
 
-### Advantage of This Solution
+#### Advantage of This Solution
 
 - This solution does not require Go Modules even though it has some limitations without Go modules. This means it does not require you to update Go to v1.11 or later versions in order to realize Semantic Import Versioning in your Go packages.
 - Its code organization is clear and straightforward as each `Major` version owns its codebase. This allows you to develop `v1` and `v2` very easily.
 - It works well with Go modules. This solution allows you to convert your packages to go modules without any problem.
 
 
-### Disadvantage of This Solution
+#### Disadvantage of This Solution
 
 - Its file structure is somehow strange. From the example, you can see that the root directory of `v1` is `path/to/example/solutiona/libfoo` while the root directory of `v2` is `path/to/example/solutiona/libfoo/v2`. This indicates `v2` lives inside `v1`. The position of `CHANGELOG.md` file also demonstrates this awkwardness.
 - A lot of code is duplicated between `v1` and `v2`, as `v2` is generated by duplicating the codebase of `v1`.
 
 
 
-## Method B: Major Branch
+### Method B: Major Branch
 
 An alternative way to realize Semantic Import Versioning is to give each `Major` version its own `master` branch. The following steps demonstrate this solution:
 
@@ -330,12 +330,12 @@ func main(){
 ```
 
 
-### Advantage of This Solution
+#### Advantage of This Solution
 
 - It solves the code duplication problem between `v1` and `v2`.
 - The file structure of `v1` and `v2` makes way more sense.
 
-### Disadvantage of This Solution
+#### Disadvantage of This Solution
 
 - I don't know how to manage `CHANGELOG.md` file for `v1` and `v2`. It looks like each `Major` version needs a `CHANGELOG.md` to record its release history, which means the whole release history of a module is going to be separated into multiple files.
 - A repository may get exploded with a bunch of branches when it is managing a lot of modules. Moreover, the master branch is not unique anymore, as an old `Major` version now is using its own branch as its master branch.

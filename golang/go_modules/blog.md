@@ -83,9 +83,9 @@ git tag bar/v2.3.3 && git push -q origin master bar/v2.3.3
 
 **The tag MUST follow the format {pure_module_path}/v{Major}.{Minor}.{Patch}. {pure_module_path} represents the module path without the repository URL (which is `bar` in this case). The is key point to make Go able to retrieve Go modules.**
 
-I recommend you reading [this proposal]((https://research.swtch.com/vgo-import)) or [this blog]() if you want to know more details about Semantic Import Versioning.
+I recommend you reading [this proposal](https://research.swtch.com/vgo-import) or [this blog]() if you want to know more details about Semantic Import Versioning.
 
-All in all, Go Modules provides a way to group one or more packages as a single Go-retrievable unit, while Semantic Import Versioning proposes a method for adopting Semantic Import in Go packages and Modules. There two things are the foundation of "versioned Go modules".
+All in all, Go Modules provides a way to group one or more packages as a single Go-retrievable unit, while Semantic Import Versioning proposes a method for utilizing Semantic Import to Go packages and Modules versioned. There two things are the foundation of "versioned Go modules".
 
 ## Converting Go Packages to Go Modules
 
@@ -294,3 +294,10 @@ It is very easy convert the micro service to utilize Go Modules. What you need t
 - Only the packages which are publicly used, for example, Go libraries and SDKs, need to convert to Go modules
 - It is very easy to replace a legacy Go package management tool (e.g. dep) with Go modules.
 
+## Reference
+
+- [Go Modules](https://blog.golang.org/modules2019)
+- [Proposal: Versioned Go Modules](https://go.googlesource.com/proposal/+/master/design/24301-versioned-go.md)
+- [Semantic Import Versioning](https://research.swtch.com/vgo-import)
+- [Semantic Versioning](https://semver.org/)
+- [Defining Go Modules](https://research.swtch.com/vgo-module#from_repository_to_modules)

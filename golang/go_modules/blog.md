@@ -3,7 +3,7 @@
 What is included in this blog:
 - A brief introduction of Go modules and Semantic Import Versioning
 - A discussion about how to convert multiple Go libraries in a single repository to Go modules
-- A discussion about how to utilize Go Modules in micro services
+- A discussion about how to utilize Go Modules in microservices
 
 ## prerequisites
 
@@ -18,17 +18,17 @@ Here is a Go module example:
 
 ```go
 path/to/my-repo:
-    bar:
-        go.mod
-        bar-file1.go
-        bar-file2.go
-        foo:
-            foo-file1.go
-            foo-file2.go
-    mixi:
-        go.mod
-        mixi-file1.go
-        mixi-file2.go
+   bar:
+       go.mod
+       bar-file1.go
+       bar-file2.go
+       foo:
+           foo-file1.go
+           foo-file2.go
+   mixi:
+       go.mod
+       mixi-file1.go
+       mixi-file2.go
 ```
 
 ![Modules in my-repo](https://raw.githubusercontent.com/aaronzhuo1990/blogs/master/golang/go_modules/images/modules-in-my-repo.png)
@@ -39,9 +39,9 @@ As shown in the picture, the `my-repo` repository has two modules `bar` and `mix
 module path/to/my-repo/bar
 
 require (
-	golang.org/x/text v0.3.0
-	rsc.io/sampler v1.99.99
-	// Other dependencies
+  golang.org/x/text v0.3.0
+  rsc.io/sampler v1.99.99
+  // Other dependencies
 )
 ```
 
@@ -51,7 +51,7 @@ The `go.mod` file bundles the `bar` package and the `foo` package together as a 
 import "path/to/my-repo/bar/foo"
 
 func main () {
-    foo.DoSomething()
+   foo.DoSomething()
 }
 ```
 
@@ -61,7 +61,7 @@ func main () {
 
 #### When to Use Go Modules
 
-The purpose of Go Modules is let one or more packages can be versioned, released and retrieved as a single unit. Therefore, the public packages, for example, Go libraries or SDKs, are major targets of Go Modules. You do not need to convert internal packages or any packages within a micro service repository to Go modules in order to utilize Go modules. These packages can directly import and use modules once Go Modules feature is enabled, even if they are not modules.
+The purpose of Go Modules is to let one or more packages can be versioned, released and retrieved as a single unit. Therefore, the public packages, for example, Go libraries or SDKs, are major targets of Go Modules. You do not need to convert internal packages or any packages within a microservice repository to Go modules in order to utilize Go modules. These packages can directly import and use modules once Go Modules feature is enabled, even if they are not modules.
 
 ### Semantic Import Versioning
 
@@ -76,13 +76,13 @@ The following picture demonstrates the rules above:
 
 #### Releasing
 
-With Go Modules and Semantic Import Versioning, you can release your modules with versions by creating git tags. For example, the following git command release the `bar` module `v2.3.3`:
+With Go Modules and Semantic Import Versioning, you can release your modules with versions by creating git tags. For example, the following git command releases the `bar` module `v2.3.3`:
 
 ```go
 git tag bar/v2.3.3 && git push -q origin master bar/v2.3.3
 ```
 
-**One rule you should follow is the tag MUST follow the format {pure_module_path}/v{Major}.{Minor}.{Patch}, while {pure_module_path} represents the module path without the repository URL (which is `bar` in this case). The is key point to make Go able to retrieve a module.**
+**One rule you should follow is the tag MUST follow the format {pure_module_path}/v{Major}.{Minor}.{Patch}, while {pure_module_path} represents the module path without the repository URL (which is `bar` in this case). The is the key point to make Go able to retrieve a module.**
 
 I recommend you reading [this proposal](https://research.swtch.com/vgo-import) or [this blog]() if you want to know more details about Semantic Import Versioning.
 
@@ -114,8 +114,8 @@ module github.com/aaronzhuo1990/blogs/golang/go_modules/example/module
 go 1.12
 
 require (
-	golang.org/x/net v0.0.0-20190328230028-74de082e2cca
-	rsc.io/quote v1.5.2
+  golang.org/x/net v0.0.0-20190328230028-74de082e2cca
+  rsc.io/quote v1.5.2
 )
 ```
 
@@ -144,12 +144,12 @@ Now let us come back to the module example and release its latest version. Here 
 
 #### Consuming A Module
 
-You can still use this package without Go Modules enabled by using some Go dependency management tool, for example dep, with the following specification. This will grab the whole repository which includes the `module` module for your build.
+You can still use this package without Go Modules enabled by using some Go dependency management tool, for example, dep, with the following specification. This will grab the whole repository which includes the `module` module for your build.
 
 ```go
 [[constraint]]
-  name = "github.com/aaronzhuo1990/blogs"
-  branch = "master"
+ name = "github.com/aaronzhuo1990/blogs"
+ branch = "master"
 ```
 
 With Go Modules, what you need to do is import and use the module in your Go program and run `go build`. It will automatically grab `golang/go_modules/example/module/v2.0.1` for your build.
@@ -171,8 +171,8 @@ go: creating new go.mod: module github.com/aaronzhuo1990/blogs/golang/go_modules
 go build:
 
 can't load package: package github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libc: unknown import path "github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libc": ambiguous import: found github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libc in multiple modules:
-        github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libc (/Users/achuo/go/src/github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libc)
-        github.com/aaronzhuo1990/blogs v0.0.0-20190330175117-09a7dbd4a3ce (/Users/achuo/go/pkg/mod/github.com/aaronzhuo1990/blogs@v0.0.0-20190330175117-09a7dbd4a3ce/golang/go_modules/example/libs/libc)
+       github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libc (/Users/achuo/go/src/github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libc)
+       github.com/aaronzhuo1990/blogs v0.0.0-20190330175117-09a7dbd4a3ce (/Users/achuo/go/pkg/mod/github.com/aaronzhuo1990/blogs@v0.0.0-20190330175117-09a7dbd4a3ce/golang/go_modules/example/libs/libc)
 ```
 
 The cause of this `ambiguous import` problem is Go grabs `github.com/aaronzhuo1990/blogs v0.0.0-20190330175117-09a7dbd4a3ce` to get the `liba` and `libb` package for satisfying the dependencies of the `libc` module. However, `github.com/aaronzhuo1990/blogs v0.0.0-20190330175117-09a7dbd4a3ce` also includes a copy of the `libc` package, which confuses the Go compiler. To fix this, we need to convert the `liba` and `libb` package to Go modules and release them, so that they can be retrieved and parsed as two individual modules by Go.
@@ -185,10 +185,10 @@ Convert the `liba` package to a module:
 ```go
 cd path/to/libs/liba
 go mod init github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/liba
-    go: creating new go.mod: module github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/liba
+   go: creating new go.mod: module github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/liba
 go build
-    go: finding golang.org/x/net/context latest
-    go: finding golang.org/x/net latest
+   go: finding golang.org/x/net/context latest
+   go: finding golang.org/x/net latest
 
 # Commit changes
 #
@@ -204,11 +204,11 @@ convert the `libb` package to a module:
 
 ```go
 go mod init github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libb
-    go: creating new go.mod: module github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libb
+   go: creating new go.mod: module github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libb
 go build
-    go: downloading github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/liba v1.1.0
-    go: extracting github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/liba v1.1.0
-    ...
+   go: downloading github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/liba v1.1.0
+   go: extracting github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/liba v1.1.0
+   ...
 
 git add ./go.mod ./go.sum
 git commit ./go.mod ./go.sum -q -m "Convert libb  to a module" && git push origin master -q
@@ -220,48 +220,48 @@ Convert the `libc` package to a module:
 ```go
 go mod init github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libc
 go build
-    go: downloading github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libb v1.0.0
-    go: extracting github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libb v1.0.0
-    ...
+   go: downloading github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libb v1.0.0
+   go: extracting github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libb v1.0.0
+   ...
 
 git add ./go.mod ./go.sum
 git commit ./go.mod ./go.sum -q -m "Convert libc  to a module" && git push origin master -q
 git tag golang/go_modules/example/libs/libc/v1.0.0 && git push -q origin master golang/go_modules/example/libs/libc/v1.0.0
 ```
 
-You can see now the `libc` package is converted to a module correctly and it can retrieve the `liba` and `libb` modules in its build without any problem.
+You can see the `libc` package is converted to a module correctly and it can retrieve the `liba` and `libb` modules in its build without any problem.
 
 
 ## Utilizing Go Modules in A Micro Service
 
-I wrote [a dummy micro-service](https://github.com/aaronzhuo1990/blogs/tree/master/golang/go_modules/example/micro-service) in order to demonstrate how to utilize Go Modules in a micro service. Here is its file structure:
+I wrote [a dummy micro-service](https://github.com/aaronzhuo1990/blogs/tree/master/golang/go_modules/example/micro-service) in order to demonstrate how to utilize Go Modules in a microservice. Here is its file structure:
 
 ```go
 github.com/aaronzhuo1990/blogs/tree/master/golang/go_modules/example/micro-service:
-    - sdks
-        - go
-    - internal
-        - api
-        - pkga
-        - pkgb
-    - server
-        - main.go
-    - vendor
-    - Gopkg.toml
-    - Gopkg.lock
-    - Dockerfile
+   - sdks
+       - go
+   - internal
+       - api
+       - pkga
+       - pkgb
+   - server
+       - main.go
+   - vendor
+   - Gopkg.toml
+   - Gopkg.lock
+   - Dockerfile
 ```
 
 I want to mention that the `internal/pkgb` package is using `libc` package that we just converted to a Go module above. In this case, `libc` is retrieved together with `liba` and `libb` as a repository (`github.com/aaronzhuo1990/blogs`) when Go Modules is not enabled and it is retrieved individually as a single unit when Go Modules is enabled.
 
-From the file structure, you can also see that the micro service is built as a docker image with the following Dockerfile:
+From the file structure, you can also see that the microservice is built as a docker image with the following Dockerfile:
 
 ```go
 FROM golang:1.12-alpine3.9
 
 RUN apk add --update \
-    ca-certificates \
-    git
+   ca-certificates \
+   git
 
 COPY . $GOPATH/src/github.com/aaronzhuo1990/blogs/golang/go_modules/example/micro-service
 RUN go build -o /usr/bin/micro-service github.com/aaronzhuo1990/blogs/golang/go_modules/example/micro-service/server && rm -rf $GOPATH/*
@@ -276,7 +276,7 @@ As mentioned in [When to Use Go Modules](#when-to-use-go-modules), only public p
 ```go
 go mod init github.com/aaronzhuo1990/blogs/golang/go_modules/example/micro-service/sdks/go
 go build
-    ...
+   ...
 git add ./go.mod ./go.sum
 git commit ./go.mod ./go.sum -q -m "Convert micro-service/sdks/go to a module" && git push origin master -q
 git tag golang/go_modules/example/micro-service/sdks/go/v1.0.2 && git push -q origin master golang/go_modules/example/micro-service/sdks/go/v1.0.2
@@ -284,7 +284,7 @@ git tag golang/go_modules/example/micro-service/sdks/go/v1.0.2 && git push -q or
 
 ### Utilizing Go Modules in the Micro Service
 
-It is very easy convert the micro service to utilize Go Modules. What we need to is add `ENV GO111MODULE=on` to enable Go Modules feature in the Dockerfile and then remove the `Gopkg.toml` and `Gopkg.lock` file and the whole `vendor` directory. EASY.
+It is very easy to convert the microservice to utilize Go Modules. What we need to is add `ENV GO111MODULE=on` to enable Go Modules feature in the Dockerfile and then remove the `Gopkg.toml` and `Gopkg.lock` file and the whole `vendor` directory. EASY.
 
 ## Summary
 
@@ -301,3 +301,4 @@ It is very easy convert the micro service to utilize Go Modules. What we need to
 - [Semantic Import Versioning](https://research.swtch.com/vgo-import)
 - [Semantic Versioning](https://semver.org/)
 - [Defining Go Modules](https://research.swtch.com/vgo-module#from_repository_to_modules)
+

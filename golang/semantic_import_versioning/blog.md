@@ -25,14 +25,14 @@ Here is an example of Go Modules:
 
 ```go
 my-repo:
-   my-thing:
-       go.mod
-       my-pkg-1:
-           file1.go
-           file2.go
-       my-pkg-2:
-           file1.go
-           file2.go
+    my-thing:
+        go.mod
+        my-pkg-1:
+            file1.go
+            file2.go
+        my-pkg-2:
+            file1.go
+            file2.go
 ```
 
 The `go.mod` file in the `my-thing` folder:
@@ -43,8 +43,8 @@ module github.com/path/to/my-thing
 go 1.12
 
 require (
-  golang.org/x/net v0.0.0-20190313220215-9f648a60d977
-  ...
+ golang.org/x/net v0.0.0-20190313220215-9f648a60d977
+ ...
 )
 
 ```
@@ -161,12 +161,12 @@ This method actually separates `v1` and `v2` into two packages by giving each of
 
 ```go
 libfoo/
-|-- CHNAGELOG.md
+|-- CHANGELOG.md
 |-- client.go
 |-- interface.go
 |-- v2/
-   |-- client.go
-   |-- interface.go
+  |-- client.go
+  |-- interface.go
 ```
 
 You can see that `v1` and `v2` are essentially two packages as each of them has its own root directory and import path (`github.com/path/to/libfoo` v.s. `github.com/path/to/libfoo/v2`). The initial codebase of `v2` is copied from `v1`.  **The idea behind this solution is hard-coding `v2` in the import path (by making `v2` subdirectory) to indicate the package's `Major` version.** The following picture demonstrates this idea:
@@ -178,7 +178,7 @@ From the picture you can see that:
 - **`v1` (and `v0`) is omitted from import paths and this is mandatory in go modules. Therefore, you'd better follow this principle if you are thinking of converting your packages into go modules one day.** You can check [this discussion](https://github.com/golang/go/issues/24301#issuecomment-371228664) if you are curious about why they made such a requirement.
 - `v2` in the import path indicates the package's `Major` version.
 - A single build can use both `v1` and `v2` as they are essentially two packages.
-- It does not require to covert your packages to go modules.
+- It does not require to convert your packages to go modules.
 
 ### Make It Work with Go Modules
 
@@ -221,7 +221,7 @@ Take `v1's` `go.mod` as an example, It declares `libfoo` (`v1`) as a module and 
 
 #### Without Go Modules
 
-Without Go Modules, you can release the versions listed in the `CHANGELOG.md` file by either creating git tags or creating [Github Releases](https://help.github.com/en/articles/creating-releases) (Creating a GitHub release is essentially creating a git tag). However, without Go Modules enabled, you will not be able to to install specific versions of `v1` and `v2` simultaneously in a single build. This is because creating a tag or a release is like creating a snapshot for the whole repository, not just for the single package. A `v2` release will also include the latest version of `v1` and vice versa. **Moreover, the existing Go package management tool can oly retrieve dependencies with the repository granularity, not the package or module granularity.** Suppose `libfoo` has released the following versions (with the order from up to down) and you want to use `v1.0.0` and `v2.1.0` in a single build:
+Without Go Modules, you can release the versions listed in the `CHANGELOG.md` file by either creating git tags or creating [Github Releases](https://help.github.com/en/articles/creating-releases) (Creating a GitHub release is essentially creating a git tag). However, without Go Modules enabled, you will not be able to install specific versions of `v1` and `v2` simultaneously in a single build. This is because creating a tag or a release is like creating a snapshot for the whole repository, not just for the single package. A `v2` release will also include the latest version of `v1` and vice versa. **Moreover, the existing Go package management tool can only retrieve dependencies with the repository granularity, not the package or module granularity.** Suppose `libfoo` has released the following versions (with the order from up to down) and you want to use `v1.0.0` and `v2.1.0` in a single build:
 
 ```
 v1.0.0
@@ -254,11 +254,11 @@ import "github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example
 import libfooV2 "github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo/v2"
 
 func main(){
-  libFooV1 := libfoo.NewClient()
-  libFooV2 := libfooV2.NewClient()
+ libFooV1 := libfoo.NewClient()
+ libFooV2 := libfooV2.NewClient()
 
-  libFooV1.Method4()
-  libFooV2.Method4()
+ libFooV1.Method4()
+ libFooV2.Method4()
 }
 ```
 
@@ -300,7 +300,7 @@ Key points:
 
 
 
-## Method A: Major Branch
+## Method B: Major Branch
 
 An alternative way to realize Semantic Import Versioning is to give each `Major` version its own `master` branch. The following steps demonstrate this solution:
 
@@ -321,11 +321,11 @@ import "github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example
 import libfooV2 "github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutionb/libfoo/v2"
 
 func main(){
-	libFooV1 := libfoo.NewClient()
-	libFooV2 := libfooV2.NewClient()
+  libFooV1 := libfoo.NewClient()
+  libFooV2 := libfooV2.NewClient()
 
-	libFooV1.Method4()
-	libFooV2.Method4()
+  libFooV1.Method4()
+  libFooV2.Method4()
 }
 ```
 
@@ -344,7 +344,7 @@ func main(){
 ## Summary
 
 - Go modules provide a way for you to group one or more packages into a single unit, while Semantic Import Versioning is a method for adopting Semantic Versioning into Go packages and modules.
-- There are two ways to realize Semantic Import Versioning and each of them has its own advantage and disadvantage: The first method (Major Branch) is more straightforward. It can work without Go Modules and allows you to convert your packages to modules very easily. However, it duplicates a lot of code. The second method (Major Branch) does not duplicate any code but may explode a repository since each old `Major` version needs its own `master` branch. Additionally, it only works with Go Modules.
+- There are two ways to realize Semantic Import Versioning and each of them has its own advantage and disadvantage: The first method (Major Subdirectory) is more straightforward. It can work without Go Modules and allows you to convert your packages to modules very easily. However, it duplicates a lot of code. The second method (Major Branch) does not duplicate any code but may explode a repository since each old `Major` version needs its own `master` branch. Additionally, it only works with Go Modules.
 - It is mandatory **NOT** to put `v1` into package path or module path in Go Modules. So you may want to stop using `v1` as a subdirectory if you are thinking of converting your packages to go modules one day.
 
 ## What Is Next?
@@ -364,3 +364,4 @@ Reference:
 - [An Example of Semantic Import Versioning](https://github.com/aaronzhuo1990/blogs/tree/master/golang/semantic_import_versioning/example/)
 - [Semantic Versioning Specification](https://semver.org/spec/v2.0.0.html#semantic-versioning-specification-semvers)
 - [Creating Github Releases](https://help.github.com/en/articles/creating-releases)
+

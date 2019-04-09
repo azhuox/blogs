@@ -1,0 +1,84 @@
+# External Service for user micro-service
+kind: Service
+apiVersion: v1
+metadata:
+  name: backup-manager-service
+  namespace: <<<namespace>>>
+spec:
+  ports:
+  - name: secure-port
+    port: 443
+    targetPort: 443
+    protocol: TCP
+  selector:
+    app: user-msvc
+  type: LoadBalancer
+  loadBalancerIP: 35.199.15.199 # This is a fake IP
+---
+
+
+# Configmap for user micro-service
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-msvc-configmap
+data:
+  mysql-host: 127.0.0.1:3306
+---
+
+
+# Pod for user micro-service
+apiVersion: v1
+kind: Pod
+metadata:
+  name: user-msvc
+  labels:
+    app: user-msvc
+spec:
+  volumes:
+  - name: datadog-dir
+    emptyDir: {}
+
+  containers:
+  - name: user-msvc
+    image: gcr.io/path/to/user-msvc:1.0.0
+    ports:
+    - name: secure-port
+      containerPort: 443
+      protocol: TCP
+    env:
+    - name: MYSQL_HOST
+      valueFrom:
+        configMapKeyRef:
+          name: website-pro-configmap
+          key: mysql-host
+    volumeMounts:
+      - name: named-pipe
+        mountPath: "/datadog"
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+        cpu: 200m
+        memory: 200Mi
+
+  - name: cloudsql-proxy
+    image: gcr.io/cloudsql-docker/gce-proxy:1.12
+    ports:
+    - name: connect-port
+      containerPort: 3306
+      protocol: TCP
+    requests:
+      ...
+
+  - name: datadog-agent
+    image: gcr.io/path/to/datadog-agent:1.0.0
+    ports:
+    - name: connect-port
+      containerPort: 3306
+      protocol: TCP
+    volumeMounts:
+      - name: named-pipe
+        mountPath: "/datadog"
+    requests:
+      ...

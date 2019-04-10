@@ -18,17 +18,17 @@ Here is a Go module example:
 
 ```go
 path/to/my-repo:
-   bar:
-       go.mod
-       bar-file1.go
-       bar-file2.go
-       foo:
-           foo-file1.go
-           foo-file2.go
-   mixi:
-       go.mod
-       mixi-file1.go
-       mixi-file2.go
+  bar:
+      go.mod
+      bar-file1.go
+      bar-file2.go
+      foo:
+          foo-file1.go
+          foo-file2.go
+  mixi:
+      go.mod
+      mixi-file1.go
+      mixi-file2.go
 ```
 
 ![Modules in my-repo](https://raw.githubusercontent.com/azhuox/blogs/master/golang/go_modules/images/modules-in-my-repo.png)
@@ -39,25 +39,25 @@ As shown in the picture, the `my-repo` repository has two modules `bar` and `mix
 module path/to/my-repo/bar
 
 require (
-  golang.org/x/text v0.3.0
-  rsc.io/sampler v1.99.99
-  // Other dependencies
+ golang.org/x/text v0.3.0
+ rsc.io/sampler v1.99.99
+ // Other dependencies
 )
 ```
 
-The `go.mod` file bundles the `bar` package and the `foo` package together as a unit. For example, the import statement in the following code will import the module `path/to/my-repo/bar` other than the package `path/to/my-repo/bar/foo` when Go Modules is enabled. **This means the path in the import statement is recognized as the module path, not the package path, once Go Modules is used.**
+The `go.mod` file bundles the `bar` package and the `foo` package together as a unit. For example, the import statement in the following code will import the module `path/to/my-repo/bar` (which includes the `foo` package) rather than the package `path/to/my-repo/bar/foo` when Go Modules is enabled. **Even though the code looks the same, the path in the import statement is recognized as the module path, not the package path, once Go Modules is used**
 
 ```go
 import "path/to/my-repo/bar/foo"
 
 func main () {
-   foo.DoSomething()
+  foo.DoSomething()
 }
 ```
 
 #### How to Enable Go Modules
 
-**In order to use Go Modules, you need to upgrade your Go to v1.11 or any later version and set the environmental variable `export GO111MODULE=on`.**
+**In order to use Go Modules, you need to upgrade your Go to v1.11 or any later version and set the environment variable `export GO111MODULE=on`.**
 
 #### When to Use Go Modules
 
@@ -65,7 +65,7 @@ func main () {
 
 ### Semantic Import Versioning
 
-[Semantic Import Versioning](https://research.swtch.com/vgo-import) is a method proposed for adopting [Semantic Versioning](https://semver.org/) in Go packages and modules. The idea behind it is embedding the major version (say `v2`) in the package path (for packages) or the module path (for modules) with the following rules:
+[Semantic Import Versioning](https://blog.vendasta-internal.com/blog/BL-MXJ6MTS8/) is a method proposed for adopting [Semantic Versioning](https://semver.org/) in Go packages and modules. The idea behind it is embedding the major version (say `v2`) in the package path (for packages) or the module path (for modules) with the following rules:
 
 - `v1` must be omitted from the module path. [This post](https://github.com/golang/go/issues/24301#issuecomment-371228664) explains the reason. You may also need to follow this rule in your packages if you are thinking of converting your packages to modules one day.
 - The Major versions higher than `v1` must be embedded in the import path or the module path so that Semantic Versioning can be applied to Go packages and modules.
@@ -82,15 +82,13 @@ The following picture demonstrates the rules above:
 git tag bar/v2.3.3 && git push -q origin master bar/v2.3.3
 ```
 
-**One rule you must follow is the tag MUST follow the format {pure_module_path}/v{Major}.{Minor}.{Patch}, while {pure_module_path} represents the module path without the repository URL, which is `bar` in this case. The is the key point to make Go able to retrieve a module.**
-
-I recommend you reading [this proposal](https://research.swtch.com/vgo-import) or [this blog]() if you want to know more details about Semantic Import Versioning.
+You can read  [my last blog](https://blog.vendasta-internal.com/blog/BL-MXJ6MTS8/) for more details about how to releases modules.
 
 **All in all, Go Modules provides a way to group one or more packages as a single retrievable unit, while Semantic Import Versioning is a method for utilizing Semantic Import to make Go packages and modules versioned. These two things are designed for breaking a repository into multiple retrievable units (modules), so that Go can grabs dependencies at the module granularity other than the repository granularity.**
 
 ## Utilizing Go Modules
 
-### General Guide of Converting Go Packages to Go Modules
+### General Guide for Converting Go Packages to Go Modules
 
 I wrote [a dummy package](https://github.com/azhuox/blogs/tree/master/golang/go_modules/example/module) called `module` for demonstrating how to convert one or more Go packages to a Go module.
 
@@ -98,13 +96,13 @@ I wrote [a dummy package](https://github.com/azhuox/blogs/tree/master/golang/go_
 
 It is very easy to convert one or more Go packages to a Go module. Take the package `module` as an example, here are the steps to convert it to a Go module:
 
-```go
+
 1. Cd to the root directory of the `module` package: `cd path/to/module`
 2. Convert the package to a module: `go mod init github.com/azhuox/blogs/golang/go_modules/example/module`
 3. Compile the module and its dependencies: `go build`
 4. Commit the changes automatically generated by Go: `git add ./go.mod ./go.sum git commit -q  -m "Convert the package to a module" && git push origin master -q`
-5. (Optional) you can run `go mod vendor` to resets the module's vendor directory to include all the packages and modules which are required for building and testing all of the module's packages. This is the way to provide dependencies for the older versions of Go that do not fully understand Go modules. Any version of Go >= v1.11 does not need this.
-```
+5. (Optional) you can run `go mod vendor` to reset the module's vendor directory to include all the packages and modules which are required for building and testing all of the module's packages. This is the way to provide dependencies for the older versions of Go that do not fully understand Go modules. Any version of Go >= v1.11 does not need this.
+
 
 The following is the contents of the `go.mod` file automatically generated by Go. You can see that the `go.mod` file defines the module's path to glues anything under the `path/to/example/module` directory as a single unit and lists all of its dependencies.
 
@@ -114,8 +112,8 @@ module github.com/azhuox/blogs/golang/go_modules/example/module
 go 1.12
 
 require (
-  golang.org/x/net v0.0.0-20190328230028-74de082e2cca
-  rsc.io/quote v1.5.2
+ golang.org/x/net v0.0.0-20190328230028-74de082e2cca
+ rsc.io/quote v1.5.2
 )
 ```
 
@@ -128,9 +126,9 @@ It grabs the latest commit for the packages that have not been converted to modu
 
 A module can only be used as a module after it is released. A module is released by creating git tags and each tag corresponds to a version. However, there are two problems we need to solve before releasing a module.
 
-The first problem is how to release `v2` or higher Major versions. Go utilizes two methods, Major Branch and Major Subdirectory, which are provided by [this proposal](https://research.swtch.com/vgo-module#from_repository_to_modules) to solve this problem. [This blog]() demonstrates these two methods and compare their advantage and disadvantage. Major Subdirectory is used for all the examples in this blog as it does not require to duplicate any code.
+The first problem is how to release `v2` or higher Major versions. Go utilizes two methods, Major Branch and Major Subdirectory, which are provided by [this proposal](https://research.swtch.com/vgo-module#from_repository_to_modules) to solve this problem. [This blog](https://blog.vendasta-internal.com/blog/BL-MXJ6MTS8/) demonstrates these two methods and compare their advantages and disadvantages. Major Subdirectory is used for all the examples in this blog as it does not require to duplicate any code.
 
-The second problem is we need to figure out whether to consider the conversion from Go package(s) to a Go module a breaking change or not. If so, we need to upgrade the Major version based the specification of [Semantic Versioning](https://semver.org/). If not, we need to decide what versions we need to release. I prefer to just release the latest version of the package(s) listed in the `CHANGELOG.md` file for the following reasons:
+The second problem is we need to figure out whether to consider the conversion from Go package(s) to a Go module a breaking change or not. If so, we need to upgrade the Major version using [Semantic Versioning](https://semver.org/). If not, we need to decide what versions we need to release. I prefer to just release the latest version of the package(s) listed in the `CHANGELOG.md` file for the following reasons:
 
 - The conversion from Go package(s) to a Go module is not a breaking change as the package(s) can still work with older versions of Go even if the package(s) are converted to a module. So it does not make sense to upgrade the Major version for this kind of change.
 - The conversion from Go package(s) to a Go module does not add any new feature or fix any bug. So upgrading the Minor or Patch version in this case does not make sense either.
@@ -148,8 +146,8 @@ You can still use this package, without Go Modules enabled, by using some Go dep
 
 ```go
 [[constraint]]
- name = "github.com/azhuox/blogs"
- branch = "master"
+name = "github.com/azhuox/blogs"
+branch = "master"
 ```
 
 With Go Modules, what you need to do is import and use the module in your Go program and run `go build`. It will automatically grab the `golang/go_modules/example/module/v2.0.1` module other than the whole repository for your build.
@@ -171,8 +169,8 @@ go: creating new go.mod: module github.com/azhuox/blogs/golang/go_modules/exampl
 go build:
 
 can't load package: package github.com/azhuox/blogs/golang/go_modules/example/libs/libc: unknown import path "github.com/azhuox/blogs/golang/go_modules/example/libs/libc": ambiguous import: found github.com/azhuox/blogs/golang/go_modules/example/libs/libc in multiple modules:
-       github.com/azhuox/blogs/golang/go_modules/example/libs/libc (/Users/achuo/go/src/github.com/azhuox/blogs/golang/go_modules/example/libs/libc)
-       github.com/azhuox/blogs v0.0.0-20190330175117-09a7dbd4a3ce (/Users/achuo/go/pkg/mod/github.com/azhuox/blogs@v0.0.0-20190330175117-09a7dbd4a3ce/golang/go_modules/example/libs/libc)
+      github.com/azhuox/blogs/golang/go_modules/example/libs/libc (/Users/achuo/go/src/github.com/azhuox/blogs/golang/go_modules/example/libs/libc)
+      github.com/azhuox/blogs v0.0.0-20190330175117-09a7dbd4a3ce (/Users/achuo/go/pkg/mod/github.com/azhuox/blogs@v0.0.0-20190330175117-09a7dbd4a3ce/golang/go_modules/example/libs/libc)
 ```
 
 The cause of this `ambiguous import` problem is Go grabs `github.com/azhuox/blogs v0.0.0-20190330175117-09a7dbd4a3ce` to get the `liba` and `libb` package for satisfying the dependencies of the `libc` module. However, `github.com/azhuox/blogs v0.0.0-20190330175117-09a7dbd4a3ce` also includes a copy of the `libc` package, which confuses the Go compiler. To fix this, we need to convert the `liba` and `libb` package to Go modules and release them, so that they can be retrieved and parsed properly as two individual modules by Go.
@@ -185,10 +183,10 @@ Convert the `liba` package to a module:
 ```go
 cd path/to/libs/liba
 go mod init github.com/azhuox/blogs/golang/go_modules/example/libs/liba
-   go: creating new go.mod: module github.com/azhuox/blogs/golang/go_modules/example/libs/liba
+  go: creating new go.mod: module github.com/azhuox/blogs/golang/go_modules/example/libs/liba
 go build
-   go: finding golang.org/x/net/context latest
-   go: finding golang.org/x/net latest
+  go: finding golang.org/x/net/context latest
+  go: finding golang.org/x/net latest
 
 # Commit changes
 #
@@ -204,11 +202,11 @@ convert the `libb` package to a module:
 
 ```go
 go mod init github.com/azhuox/blogs/golang/go_modules/example/libs/libb
-   go: creating new go.mod: module github.com/azhuox/blogs/golang/go_modules/example/libs/libb
+  go: creating new go.mod: module github.com/azhuox/blogs/golang/go_modules/example/libs/libb
 go build
-   go: downloading github.com/azhuox/blogs/golang/go_modules/example/libs/liba v1.1.0
-   go: extracting github.com/azhuox/blogs/golang/go_modules/example/libs/liba v1.1.0
-   ...
+  go: downloading github.com/azhuox/blogs/golang/go_modules/example/libs/liba v1.1.0
+  go: extracting github.com/azhuox/blogs/golang/go_modules/example/libs/liba v1.1.0
+  ...
 
 git add ./go.mod ./go.sum
 git commit ./go.mod ./go.sum -q -m "Convert libb  to a module" && git push origin master -q
@@ -220,9 +218,9 @@ Convert the `libc` package to a module:
 ```go
 go mod init github.com/azhuox/blogs/golang/go_modules/example/libs/libc
 go build
-   go: downloading github.com/azhuox/blogs/golang/go_modules/example/libs/libb v1.0.0
-   go: extracting github.com/azhuox/blogs/golang/go_modules/example/libs/libb v1.0.0
-   ...
+  go: downloading github.com/azhuox/blogs/golang/go_modules/example/libs/libb v1.0.0
+  go: extracting github.com/azhuox/blogs/golang/go_modules/example/libs/libb v1.0.0
+  ...
 
 git add ./go.mod ./go.sum
 git commit ./go.mod ./go.sum -q -m "Convert libc  to a module" && git push origin master -q
@@ -232,24 +230,24 @@ git tag golang/go_modules/example/libs/libc/v1.0.0 && git push -q origin master 
 You can see the `libc` package is converted to a module correctly and it can retrieve the `liba` and `libb` modules in its build without any problem.
 
 
-## Utilizing Go Modules in A Micro Service
+## Go Modules and Micro Services
 
 I wrote [a dummy micro-service](https://github.com/azhuox/blogs/tree/master/golang/go_modules/example/micro-service) for demonstrating how to utilize Go Modules in a microservice. Here is its file structure:
 
 ```go
 github.com/azhuox/blogs/tree/master/golang/go_modules/example/micro-service:
-   - sdks
-       - go
-   - internal
-       - api
-       - pkga
-       - pkgb
-   - server
-       - main.go
-   - vendor
-   - Gopkg.toml
-   - Gopkg.lock
-   - Dockerfile
+  - sdks
+      - go
+  - internal
+      - api
+      - pkga
+      - pkgb
+  - server
+      - main.go
+  - vendor
+  - Gopkg.toml
+  - Gopkg.lock
+  - Dockerfile
 ```
 
 I want to mention that the `internal/pkgb` package is using `libc` package that we just converted to a Go module above. In this case, `libc` is retrieved together with `liba` and `libb` from the `github.com/azhuox/blogs` repository when Go Modules is not enabled. But it is retrieved individually as a single unit when Go Modules is enabled.
@@ -260,8 +258,8 @@ From the file structure, you can also see that the microservice is built as a do
 FROM golang:1.12-alpine3.9
 
 RUN apk add --update \
-   ca-certificates \
-   git
+  ca-certificates \
+  git
 
 COPY . $GOPATH/src/github.com/azhuox/blogs/golang/go_modules/example/micro-service
 RUN go build -o /usr/bin/micro-service github.com/azhuox/blogs/golang/go_modules/example/micro-service/server && rm -rf $GOPATH/*
@@ -276,7 +274,7 @@ As mentioned in the [When to Use Go Modules](#when-to-use-go-modules) section, o
 ```go
 go mod init github.com/azhuox/blogs/golang/go_modules/example/micro-service/sdks/go
 go build
-   ...
+  ...
 git add ./go.mod ./go.sum
 git commit ./go.mod ./go.sum -q -m "Convert micro-service/sdks/go to a module" && git push origin master -q
 git tag golang/go_modules/example/micro-service/sdks/go/v1.0.2 && git push -q origin master golang/go_modules/example/micro-service/sdks/go/v1.0.2
@@ -284,7 +282,7 @@ git tag golang/go_modules/example/micro-service/sdks/go/v1.0.2 && git push -q or
 
 ### Utilizing Go Modules in the Micro Service
 
-**It is very easy to convert the microservice to utilize Go Modules. What we need to is add `ENV GO111MODULE=on` in the Dockerfile to enable Go Modules feature and then remove the `Gopkg.toml` and `Gopkg.lock` file and the whole `vendor` directory. EASY.**
+**It is very easy to convert the microservice to utilize Go Modules. We just add `ENV GO111MODULE=on` to the Dockerfile to enable Go Modules feature and then remove the `Gopkg.toml` and `Gopkg.lock` file and the whole `vendor` directory. EASY.**
 
 ## Summary
 

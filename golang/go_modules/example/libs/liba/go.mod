@@ -1,4 +1,4 @@
-module github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/liba
+module github.com/azhuox/blogs/golang/go_modules/example/libs/liba
 
 go 1.12
 

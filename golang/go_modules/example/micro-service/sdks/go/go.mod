@@ -1,4 +1,4 @@
-module github.com/aaronzhuo1990/blogs/golang/go_modules/example/micro-service/sdks/go
+module github.com/azhuox/blogs/golang/go_modules/example/micro-service/sdks/go
 
 go 1.12
 

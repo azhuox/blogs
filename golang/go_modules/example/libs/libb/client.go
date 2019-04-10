@@ -3,7 +3,7 @@ package liba
 import (
 	"fmt"
 	"golang.org/x/net/context"
-	"github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/liba"
+	"github.com/azhuox/blogs/golang/go_modules/example/libs/liba"
 )
 
 type clientImpl struct {

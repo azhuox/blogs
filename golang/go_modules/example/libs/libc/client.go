@@ -2,8 +2,8 @@ package liba
 
 import (
 	"fmt"
-	"github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/liba"
-	libb "github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libb"
+	"github.com/azhuox/blogs/golang/go_modules/example/libs/liba"
+	libb "github.com/azhuox/blogs/golang/go_modules/example/libs/libb"
 )
 
 type clientImpl struct {

@@ -1,7 +1,7 @@
-github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutionb/libfoo v1.1.1 h1:xg8CjhqccZ9BoayUNcLfFAQ4rUcNBtV2rja/KFXiBD4=
-github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutionb/libfoo v1.1.1/go.mod h1:ZMbjWUdcsCQelbrTy35M0LVowbxOotlpBzfR0tcaod8=
-github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutionb/libfoo/v2 v2.0.0 h1:WtNnl8G53ssg9aLVqUSAALJBjpnUpZuXyfQyxtxf9xc=
-github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutionb/libfoo/v2 v2.0.0/go.mod h1:1Ufnb4ryLmqjn/C2E8O69wLRpcqINqPI3jXuQ0o8njs=
+github.com/azhuox/blogs/golang/semantic_import_versioning/example/solutionb/libfoo v1.1.1 h1:xg8CjhqccZ9BoayUNcLfFAQ4rUcNBtV2rja/KFXiBD4=
+github.com/azhuox/blogs/golang/semantic_import_versioning/example/solutionb/libfoo v1.1.1/go.mod h1:ZMbjWUdcsCQelbrTy35M0LVowbxOotlpBzfR0tcaod8=
+github.com/azhuox/blogs/golang/semantic_import_versioning/example/solutionb/libfoo/v2 v2.0.0 h1:WtNnl8G53ssg9aLVqUSAALJBjpnUpZuXyfQyxtxf9xc=
+github.com/azhuox/blogs/golang/semantic_import_versioning/example/solutionb/libfoo/v2 v2.0.0/go.mod h1:1Ufnb4ryLmqjn/C2E8O69wLRpcqINqPI3jXuQ0o8njs=
 golang.org/x/text v0.0.0-20170915032832-14c0d48ead0c/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.0 h1:g61tztE5qeGQ89tm6NTjjM9VPIm088od1l6aSorWRWg=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=

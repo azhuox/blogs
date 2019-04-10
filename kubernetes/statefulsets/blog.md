@@ -23,7 +23,7 @@ The following example demonstrates how to use a StatefulSet to create a ZooKeepe
 
 A [Zookeeper service](https://zookeeper.apache.org/) is a distributed coordination system for distributed applications.  It allows to you read, write data and observe data updates. Data is stored and replicated in each ZooKeeper server and these servers groups together as a ZooKeeper Ensemble. The following picture shows the overview of a ZooKeeper service with five ZooKeeper servers. When the ZooKeeper Service starts up, the ensemble holds an election and selects server 1 to be the leader. Then clients can connect to any of these ZooKeeper servers to read/write data once the service is ready. 
 
-![A five-nodes Zookeeper Service](https://raw.githubusercontent.com/aaronzhuo1990/blogs/master/kubernetes/statefulsets/zookeeper-svc-in-statefulset.jpeg "A five-nodes Zookeeper Service")
+![A five-nodes Zookeeper Service](https://raw.githubusercontent.com/azhuox/blogs/master/kubernetes/statefulsets/zookeeper-svc-in-statefulset.jpeg "A five-nodes Zookeeper Service")
 
 Read in ZooKeeper is easy and fast as each server replicates all of the data in its storage. For example, when client 1 connects to server 0 and issues a read request, server 0 directly gets the data from its storage and sends it back to client 1. Write in ZooKeeper, however, is time-consuming and complicated. This is because any write request needs to be processed by the leader. The leader replicates the data write to a quorum and then make the data write visible to all the clients. A quorum (ceil(N/2 + 1)) is the requirement of minimum number of available servers. 
 For example, for a five-servers ensemble, at least three servers (5/2 + 1) need to be up at any time.   
@@ -171,7 +171,7 @@ Doing rolling updates for applications like ZooKeepers is a little bit tricky: O
 The filed `spec.volumeClaimTemplates` is used to provide stable storage for StatefulSets. As shown in  the following	picture, the field `spec.volumeClaimTemplates` creates a Persistent Volume Claim (`datadir-zk-0`), a Persistent Volume (`pv-0000`), and a 10 GB standard persistent disk for Pod `zk-0`. These storage settings have the same life cycle with the StatefulSet, which means the storage for a Stateful Pod 
 is stable and persistent. Any StatefulSet Pod will not lose its data whenever it is terminated and recreated.
 
-![The Persistent Storage in the Zookeeper Service](https://raw.githubusercontent.com/aaronzhuo1990/blogs/master/kubernetes/statefulsets/pvs-zookeeper-service.jpeg)
+![The Persistent Storage in the Zookeeper Service](https://raw.githubusercontent.com/azhuox/blogs/master/kubernetes/statefulsets/pvs-zookeeper-service.jpeg)
 
 ## Use Case of StatefulSets
 

@@ -6,7 +6,7 @@ RUN apk add --update \
 
 ENV GO111MODULE=on
 
-COPY . $GOPATH/src/github.com/aaronzhuo1990/blogs/golang/go_modules/example/micro-service
-RUN go build -o /usr/bin/micro-service github.com/aaronzhuo1990/blogs/golang/go_modules/example/micro-service/server && rm -rf $GOPATH/*
+COPY . $GOPATH/src/github.com/azhuox/blogs/golang/go_modules/example/micro-service
+RUN go build -o /usr/bin/micro-service github.com/azhuox/blogs/golang/go_modules/example/micro-service/server && rm -rf $GOPATH/*
 
 ENTRYPOINT ["/usr/bin/micro-service"]

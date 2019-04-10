@@ -3,7 +3,7 @@ package module
 import (
 	"fmt"
 	"golang.org/x/net/context"
-	libc "github.com/aaronzhuo1990/blogs/golang/go_modules/example/libs/libc"
+	libc "github.com/azhuox/blogs/golang/go_modules/example/libs/libc"
 )
 
 type clientImpl struct {

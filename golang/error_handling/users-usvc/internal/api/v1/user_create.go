@@ -8,7 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	userV1 "github.com/aaronzhuo1990/blogs/golang/error_handling/users-usvc/internal/user/v1"
+	userV1 "github.com/azhuox/blogs/golang/error_handling/users-usvc/internal/user/v1"
 )
 
 // CreateUserAPIHandler is the API handler for creating a site. It uses builtin errors to do the error handling

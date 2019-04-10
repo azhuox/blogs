@@ -5,7 +5,7 @@ import (
 	"rsc.io/quote"
 	"golang.org/x/net/context"
 
-	internal "github.com/aaronzhuo1990/blogs/golang/go_modules/example/module/internal"
+	internal "github.com/azhuox/blogs/golang/go_modules/example/module/internal"
 )
 
 type clientImpl struct {

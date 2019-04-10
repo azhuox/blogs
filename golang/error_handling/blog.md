@@ -50,7 +50,7 @@ Here is the pseudocode code of the API handler:
 
 import (
     ...
-    userV1 "github.com/aaronzhuo1990/blogs/golang/error_handling/users-usvc/internal/user/v1"
+    userV1 "github.com/azhuox/blogs/golang/error_handling/users-usvc/internal/user/v1"
 )
 
 // CreateUserAPIHandler is the API handler for creating a site. It uses builtin errors to do the error handling
@@ -378,7 +378,7 @@ func CreateUserAPIHandler(w http.ResponseWriter, r *http.Request) {
 - **Use structs to define error types and expose them if you need to customize some error types.**
 - **Define a customized interface to extend the `error` interface if all the error types that you want to define have the same properties.**
 
-You can check the complete example from [this repo](https://github.com/aaronzhuo1990/blogs/tree/master/golang/error_handling/users-usvc).
+You can check the complete example from [this repo](https://github.com/azhuox/blogs/tree/master/golang/error_handling/users-usvc).
 
 That's it, thanks for reading this blog.
 
@@ -386,5 +386,5 @@ Reference
 - [Why is my nil error value not equal to nil?](https://golang.org/doc/faq#nil_error)
 - [Json Package in Golang](https://golang.org/pkg/encoding/json/)
 - [Error Handling and Go](https://blog.golang.org/error-handling-and-go)
-- [The Complete Golang Error Handling Example in This Blog](https://github.com/aaronzhuo1990/blogs/tree/master/golang/error_handling/users-usvc)
+- [The Complete Golang Error Handling Example in This Blog](https://github.com/azhuox/blogs/tree/master/golang/error_handling/users-usvc)
 

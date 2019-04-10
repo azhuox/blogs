@@ -70,18 +70,18 @@ Here is the summary of the relationship between a package, a module, and a repos
 #### Conflicting Dependencies
 The following picture shows the scenario of Conflicting Dependencies, where application A depends on `libfoo` `v1.2.0` and one of its dependencies `libb` requires `libfoo` `v1.9.0`. But different versions of `libfoo` cannot be simultaneously installed. Semantic Import Versioning solves this problem using [Minimal Version Selection Algorithm](https://research.swtch.com/vgo-mvs): The version selected by minimal version selection is always the semantically highest of the versions. In this case, `libfoo` `v1.9.0` is selected as it is the highest version. Moreover, based on the import compatibility rule, `v1.9.0` should be backward-compatible with `v1.2.0` as they have the same import path (which means they have the same `Major` version). Therefore, the application should be able to work with `v1.9.0` without any problem even though it requires `v1.2.0`.
 
-![Conflicting Dependencies](https://raw.githubusercontent.com/aaronzhuo1990/blogs/master/golang/semantic_import_versioning/go-semver-conflicting-dependencies.png)
+![Conflicting Dependencies](https://raw.githubusercontent.com/azhuox/blogs/master/golang/semantic_import_versioning/go-semver-conflicting-dependencies.png)
 
 
 #### Diamond Dependency
 
 The following picture shows the scenario of Diamond Dependency, where application A depends on `libb` and `libc`. Both of them depend on `libd`, but `libb` requires `libd` `v1.1.0` and `libc` requires `libd` `v2.2.2`. Semantic Import Versioning solves this problem by installing both versions and distinguishing them with import paths (`path/to/libd` v.s. `path/to/libd/v2`). `libd` `v1` and `v2` are considered two different packages as they have different import paths.
 
-![Diamond Dependency](https://raw.githubusercontent.com/aaronzhuo1990/blogs/master/golang/semantic_import_versioning/go-semver-diamond-denpendency.png)
+![Diamond Dependency](https://raw.githubusercontent.com/azhuox/blogs/master/golang/semantic_import_versioning/go-semver-diamond-denpendency.png)
 
 ## Example
 
-I wrote a dummy package called `libfoo` to demonstrate how Semantic Import Versioning works. You can check [this repo](https://github.com/aaronzhuo1990/blogs/tree/master/golang/semantic_import_versioning/example/) for more details about this example.
+I wrote a dummy package called `libfoo` to demonstrate how Semantic Import Versioning works. You can check [this repo](https://github.com/azhuox/blogs/tree/master/golang/semantic_import_versioning/example/) for more details about this example.
 
 Let us go through this example to see how Semantic Import Versioning works.
 
@@ -171,7 +171,7 @@ libfoo/
 
 You can see that `v1` and `v2` are essentially two packages as each of them has its own root directory and import path (`github.com/path/to/libfoo` v.s. `github.com/path/to/libfoo/v2`). The initial codebase of `v2` is copied from `v1`.  **The idea behind this solution is hard-coding `v2` in the import path (by making `v2` subdirectory) to indicate the package's `Major` version.** The following picture demonstrates this idea:
 
-![v1 v.s. v2](https://raw.githubusercontent.com/aaronzhuo1990/blogs/master/golang/semantic_import_versioning/go-semver-v1-vs-v2.png)
+![v1 v.s. v2](https://raw.githubusercontent.com/azhuox/blogs/master/golang/semantic_import_versioning/go-semver-v1-vs-v2.png)
 
 From the picture you can see that:
 
@@ -186,13 +186,13 @@ It is very easy to convert both `v1` and `v2` to Go modules. What we need to do 
 
 ```go
 cd /path/to/solutiona/libfoo
-go mod init github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo
-go: creating new go.mod: module github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo
+go mod init github.com/azhuox/blogs/golang/semantic_import_versioning/example/solutiona/libfoo
+go: creating new go.mod: module github.com/azhuox/blogs/golang/semantic_import_versioning/example/solutiona/libfoo
 go build
 
 cd /path/to/solutiona/libfoo/v2
-go mod init github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo/v2
-go: creating new go.mod: module github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo/v2
+go mod init github.com/azhuox/blogs/golang/semantic_import_versioning/example/solutiona/libfoo/v2
+go: creating new go.mod: module github.com/azhuox/blogs/golang/semantic_import_versioning/example/solutiona/libfoo/v2
 go build
 ```
 
@@ -201,7 +201,7 @@ It respectively creates a `go.mod` file for `v1` and `v2`:
 `v1's` `go.mod`:
 
 ```go
-module github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo
+module github.com/azhuox/blogs/golang/semantic_import_versioning/example/solutiona/libfoo
 
 require rsc.io/quote v1.5.2
 ```
@@ -209,7 +209,7 @@ require rsc.io/quote v1.5.2
 `v2's` `go.mod`:
 
 ```go
-module github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo/v2
+module github.com/azhuox/blogs/golang/semantic_import_versioning/example/solutiona/libfoo/v2
 
 require rsc.io/quote v1.5.2
 ```
@@ -238,20 +238,20 @@ You cannot grab `v1.0.0` as it does not have `v2.1.0`. You can only require eith
 
 Things become easier when Go Modules is used. With Go Modules, these versions can be released by tagging specific git commits or creating github releases. Here are what I did to release these versions:
 
-1. Cd to the root directory of [example/solutiona/libfoo](https://github.com/aaronzhuo1990/blogs/tree/master/golang/semantic_import_versioning/example/solutiona/libfoo).
+1. Cd to the root directory of [example/solutiona/libfoo](https://github.com/azhuox/blogs/tree/master/golang/semantic_import_versioning/example/solutiona/libfoo).
 2. Realize `Method1() - Method4()` in v1 and comit/push changes: `git commit -q  -m "Realize Method1() - Method4() to release v1.0.0" && git push origin master -q`
 3. Create a tag for the changes: `git tag golang/semantic_import_versioning/example/solutiona/libfoo/v1.0.0 && git push -q origin master golang/semantic_import_versioning/example/solutiona/libfoo/v1.0.0`
 4. Realize `Method5()` in v1 interface, commit/push changes and create the tag `golang/semantic_import_versioning/example/solutiona/libfoo/v1.1.0`
-5. Duplicate `v1` code in the [example/solutiona/libfoo/v2](https://github.com/aaronzhuo1990/blogs/tree/master/golang/semantic_import_versioning/example/solutiona/libfoo/v2) folder, modify the signature of Method5(), commit/push changes and create the tag `golang/semantic_import_versioning/example/solutiona/libfoo/v2.0.0`
+5. Duplicate `v1` code in the [example/solutiona/libfoo/v2](https://github.com/azhuox/blogs/tree/master/golang/semantic_import_versioning/example/solutiona/libfoo/v2) folder, modify the signature of Method5(), commit/push changes and create the tag `golang/semantic_import_versioning/example/solutiona/libfoo/v2.0.0`
 6. Realize `Method6()` in v2 interface, commit/push changes and create the tag `golang/semantic_import_versioning/example/solutiona/libfoo/v2.1.0`
 7. Pretend to fix a bug in `Method4()` in `v1`, commit/push changes and create the tag `golang/semantic_import_versioning/example/solutiona/libfoo/v1.1.1`
-8. Cd to [example/solutiona/demo](https://github.com/aaronzhuo1990/blogs/tree/master/golang/semantic_import_versioning/example/solutiona/demo), create `main.go` and add the following code:
+8. Cd to [example/solutiona/demo](https://github.com/azhuox/blogs/tree/master/golang/semantic_import_versioning/example/solutiona/demo), create `main.go` and add the following code:
 
 ```go
 package main
 
-import "github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo"
-import libfooV2 "github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo/v2"
+import "github.com/azhuox/blogs/golang/semantic_import_versioning/example/solutiona/libfoo"
+import libfooV2 "github.com/azhuox/blogs/golang/semantic_import_versioning/example/solutiona/libfoo/v2"
 
 func main(){
  libFooV1 := libfoo.NewClient()
@@ -262,11 +262,11 @@ func main(){
 }
 ```
 
-9. Initialize `path/to/solutiona/demo` as a go module: `go mod init github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/demo`
+9. Initialize `path/to/solutiona/demo` as a go module: `go mod init github.com/azhuox/blogs/golang/semantic_import_versioning/example/solutiona/demo`
 
 10. Build: `go build`
 
-11. Downgrade `libfoo` `v1` to `v1.0.0`: `go get github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo@v1.0.0`
+11. Downgrade `libfoo` `v1` to `v1.0.0`: `go get github.com/azhuox/blogs/golang/semantic_import_versioning/example/solutiona/libfoo@v1.0.0`
 
 12. Build again: `go build`
 
@@ -279,10 +279,10 @@ v2 Hello, world.
 
 Key points:
 
-1. **A version is released by creating a tag and the tag MUST follow the format {module_path}/v{Major}.{Minor}.{Patch}. This is the key point to make the module retrievable as a single unit by Go.** Take the tag `golang/semantic_import_versioning/example/solutiona/libfoo/v1.1.1` as an example, `golang/semantic_import_versioning/example/solutiona/libfoo` is the module path while `v1.1.1` is the version number. You can see that the repository URL (`github.com/aaronzhuo1990/blogs`) is omitted from the module path.
-2. A tag can be created by using `git tag` command or creating a github release, as long as you use the correct format for the tag name. For example, `v1.1.0` is created by using `git tag` command while `v1.1.1` is created by creating a GitHub release. You can check the [release history](https://github.com/aaronzhuo1990/blogs/tags) of this example for more details.
-3. `go mod init` always grabs the latest versions of the module's dependencies, which is `libfoo v1.1.1` and `libfoo v2.1.0` in this case. You need to manually downgrade `v1` from `v1.1.1` to `v1.0.0` by running the command `go get github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutiona/libfoo@v1.0.0`.
-4. A tag or a release is essentially a snapshot for the whole repo, which is `github.com/aaronzhuo1990/blogs` in this example. However, with Go modules, the specific version of `v1` and `v2` can be simultaneously installed. In this case, `v1.0.0` and `v2.1.0` are simultaneously installed in a single build. You can prove this by adding `libFooV1.Method5()` in the demo and run `go build`. It will fail as `v1.0.0` does not have `Method5()`.
+1. **A version is released by creating a tag and the tag MUST follow the format {module_path}/v{Major}.{Minor}.{Patch}. This is the key point to make the module retrievable as a single unit by Go.** Take the tag `golang/semantic_import_versioning/example/solutiona/libfoo/v1.1.1` as an example, `golang/semantic_import_versioning/example/solutiona/libfoo` is the module path while `v1.1.1` is the version number. You can see that the repository URL (`github.com/azhuox/blogs`) is omitted from the module path.
+2. A tag can be created by using `git tag` command or creating a github release, as long as you use the correct format for the tag name. For example, `v1.1.0` is created by using `git tag` command while `v1.1.1` is created by creating a GitHub release. You can check the [release history](https://github.com/azhuox/blogs/tags) of this example for more details.
+3. `go mod init` always grabs the latest versions of the module's dependencies, which is `libfoo v1.1.1` and `libfoo v2.1.0` in this case. You need to manually downgrade `v1` from `v1.1.1` to `v1.0.0` by running the command `go get github.com/azhuox/blogs/golang/semantic_import_versioning/example/solutiona/libfoo@v1.0.0`.
+4. A tag or a release is essentially a snapshot for the whole repo, which is `github.com/azhuox/blogs` in this example. However, with Go modules, the specific version of `v1` and `v2` can be simultaneously installed. In this case, `v1.0.0` and `v2.1.0` are simultaneously installed in a single build. You can prove this by adding `libFooV1.Method5()` in the demo and run `go build`. It will fail as `v1.0.0` does not have `Method5()`.
 5. Please note that in this example, I directly committed/pushed changes into the master branch just for simplifying the demo workflow. This is not a good practice. You are supposed to create a branch, commit/push changes, create a pull request and merge the changes into master branch in real development.
 
 
@@ -304,7 +304,7 @@ Key points:
 
 An alternative way to realize Semantic Import Versioning is to give each `Major` version its own `master` branch. The following steps demonstrate this solution:
 
-1. Cd to the root directory of [example/solutionb/libfoo](https://github.com/aaronzhuo1990/blogs/tree/master/golang/semantic_import_versioning/example/solutionb/libfoo).
+1. Cd to the root directory of [example/solutionb/libfoo](https://github.com/azhuox/blogs/tree/master/golang/semantic_import_versioning/example/solutionb/libfoo).
 2. Realize `Method1() - Method4()` in v1, comit/push changes and create the tag `golang/semantic_import_versioning/example/solutionb/libfoo/v1.0.0`
 3. Realize `Method5()` in `v1`, commit/push changes and create the tag `golang/semantic_import_versioning/example/solutionb/libfoo/v1.1.0`
 4. **Create a branch (say `go-semver-solutionb-libfoo-v1`) based on the master branch for `v1`. We are going to use this branch other than master branch to add features or fix bugs for `v1`.**
@@ -312,13 +312,13 @@ An alternative way to realize Semantic Import Versioning is to give each `Major`
 6. Modify the signature of Method5(), commit/push changes and create the tag `golang/semantic_import_versioning/example/solutionb/libfoo/v2.0.0`
 7. Add Method6(), commit/push changes and create the tag `golang/semantic_import_versioning/example/solutionb/libfoo/v2.1.0`
 8. Switch back to the branch `go-semver-solutionb-libfoo-v1`, fix a bug in Method4(), commite/push changes and then create the tag `golang/semantic_import_versioning/example/solutionb/libfoo/v1.1.1` based on this branch.
-9. Create [a demo](https://github.com/aaronzhuo1990/blogs/tree/master/golang/semantic_import_versioning/example/solutionb/demo) to use `v1` and `v2`:
+9. Create [a demo](https://github.com/azhuox/blogs/tree/master/golang/semantic_import_versioning/example/solutionb/demo) to use `v1` and `v2`:
 
 ```go
 package main
 
-import "github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutionb/libfoo"
-import libfooV2 "github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutionb/libfoo/v2"
+import "github.com/azhuox/blogs/golang/semantic_import_versioning/example/solutionb/libfoo"
+import libfooV2 "github.com/azhuox/blogs/golang/semantic_import_versioning/example/solutionb/libfoo/v2"
 
 func main(){
   libFooV1 := libfoo.NewClient()
@@ -361,7 +361,7 @@ Reference:
 - [Dependency Hell](https://en.wikipedia.org/wiki/Dependency_hell)
 - [Semantic Import Versioning](https://research.swtch.com/vgo-import)
 - [Minimal Version Selection](https://research.swtch.com/vgo-mvs)
-- [An Example of Semantic Import Versioning](https://github.com/aaronzhuo1990/blogs/tree/master/golang/semantic_import_versioning/example/)
+- [An Example of Semantic Import Versioning](https://github.com/azhuox/blogs/tree/master/golang/semantic_import_versioning/example/)
 - [Semantic Versioning Specification](https://semver.org/spec/v2.0.0.html#semantic-versioning-specification-semvers)
 - [Creating Github Releases](https://help.github.com/en/articles/creating-releases)
 

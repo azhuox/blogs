@@ -1,7 +1,7 @@
 package main
 
-import "github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutionb/libfoo"
-import libfooV2 "github.com/aaronzhuo1990/blogs/golang/semantic_import_versioning/example/solutionb/libfoo/v2"
+import "github.com/azhuox/blogs/golang/semantic_import_versioning/example/solutionb/libfoo"
+import libfooV2 "github.com/azhuox/blogs/golang/semantic_import_versioning/example/solutionb/libfoo/v2"
 
 func main(){
 	libFooV1 := libfoo.NewClient()

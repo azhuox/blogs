@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"golang.org/x/net/context"
 
-	pkga "github.com/aaronzhuo1990/blogs/golang/go_modules/example/micro-service/internal/pkga"
-	pkgb "github.com/aaronzhuo1990/blogs/golang/go_modules/example/micro-service/internal/pkgb"
+	pkga "github.com/azhuox/blogs/golang/go_modules/example/micro-service/internal/pkga"
+	pkgb "github.com/azhuox/blogs/golang/go_modules/example/micro-service/internal/pkgb"
 )
 
 type clientImpl struct {

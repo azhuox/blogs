@@ -63,7 +63,7 @@ In order to use Go Modules, you need to upgrade your Go to v1.11 or any later ve
 
 ## Semantic Import Versioning
 
-[Semantic Import Versioning](https://blog.vendasta-internal.com/blog/BL-MXJ6MTS8/) is a method proposed for adopting [Semantic Versioning](https://semver.org/) in Go packages and modules. The idea behind it is embedding the major version (say `v2`) in the package path (for packages) or the module path (for modules) with the following rules:
+[Semantic Import Versioning](https://github.com/azhuox/blogs/blob/master/golang/semantic_import_versioning/blog.md) is a method proposed for adopting [Semantic Versioning](https://semver.org/) in Go packages and modules. The idea behind it is embedding the major version (say `v2`) in the package path (for packages) or the module path (for modules) with the following rules:
 
 - `v1` must be omitted from the module path. [This post](https://github.com/golang/go/issues/24301#issuecomment-371228664) explains the reason. You may need to follow this rule in your packages if you are thinking of converting your packages to modules one day.
 - The Major versions higher than `v1` must be embedded in the package path or the module path so that Semantic Versioning can be applied to Go packages and modules.
@@ -80,7 +80,7 @@ The following picture demonstrates the rules above:
 git tag bar/v2.3.3 && git push -q origin master bar/v2.3.3
 ```
 
-You can read  [my last blog](https://blog.vendasta-internal.com/blog/BL-MXJ6MTS8/) for more details about how to releases modules with Semantic Import Versioning.
+You can read  [my last blog](https://github.com/azhuox/blogs/blob/master/golang/semantic_import_versioning/blog.md) for more details about how to releases modules with Semantic Import Versioning.
 
 **All in all, Go Modules provides a way to group one or more packages as a single retrievable unit, while Semantic Import Versioning is a method for applying Semantic Versioning in Go packages and modules to make them versioned. These two things are designed for breaking a repository into multiple retrievable units (modules), so that Go can grabs dependencies at the module granularity rather than the repository granularity.**
 
@@ -123,7 +123,7 @@ It grabs the latest commit for the packages that have not been converted to modu
 
 A module can only be used as a module after it is released. A module is released by creating git tags and each tag corresponds to a version. However, there are two problems we need to solve before releasing a module.
 
-The first problem is how to release `v2` or higher Major versions. Go utilizes two methods, Major Branch and Major Subdirectory, which are provided by [this proposal](https://research.swtch.com/vgo-module#from_repository_to_modules) to solve this problem. [My last blog](https://blog.vendasta-internal.com/blog/BL-MXJ6MTS8/) demonstrates these two methods and compare their advantages and disadvantages. In this blog, Major Subdirectory is used for all the examples as it does not require to duplicate any code.
+The first problem is how to release `v2` or higher Major versions. Go utilizes two methods, Major Branch and Major Subdirectory, which are provided by [this proposal](https://research.swtch.com/vgo-module#from_repository_to_modules) to solve this problem. [My last blog](https://github.com/azhuox/blogs/blob/master/golang/semantic_import_versioning/blog.md) demonstrates these two methods and compare their advantages and disadvantages. In this blog, Major Subdirectory is used for all the examples as it does not require to duplicate any code.
 
 The second problem is we need to figure out whether to consider the conversion from Go package(s) to a Go module a breaking change or not. If so, we need to upgrade the Major version using [Semantic Versioning](https://semver.org/). If not, we need to decide what versions we need to release. I prefer to just release the latest version of the package(s) listed in the `CHANGELOG.md` file for the following reasons:
 
@@ -295,6 +295,6 @@ git tag golang/go_modules/example/micro-service/sdks/go/v1.0.2 && git push -q or
 - [dependency hell](https://en.wikipedia.org/wiki/Dependency_hell)
 - [Semantic Import Versioning](https://research.swtch.com/vgo-import)
 - [Semantic Versioning](https://semver.org/)
-- [Semantic Import Versioning in Go](https://blog.vendasta-internal.com/blog/BL-MXJ6MTS8/)
+- [Semantic Import Versioning in Go](https://github.com/azhuox/blogs/blob/master/golang/semantic_import_versioning/blog.md)
 - [Defining Go Modules](https://research.swtch.com/vgo-module#from_repository_to_modules)
 

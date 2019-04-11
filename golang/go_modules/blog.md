@@ -1,18 +1,16 @@
-# Go Modules
-
 What is included in this blog:
 
 - A brief introduction of Go modules and Semantic Import Versioning
 - A discussion about how to convert multiple Go libraries in the same  repository to Go modules
 - A discussion about how to utilize Go Modules in microservices
 
-## prerequisites
+# prerequisites
 
-### Go Modules
+## Go Modules
 
 [Go Modules](https://blog.golang.org/modules2019) is an experimental opt-in feature in Go 1.11 with the plan of finalizing feature for Go 1.13. The definition of a Go module from [this proposal](https://go.googlesource.com/proposal/+/master/design/24301-versioned-go.md) is "a group of packages that share a common prefix, the module path, and are versioned together as a single unit". It is designed for resolving [dependency hell](https://en.wikipedia.org/wiki/Dependency_hell) problems in Go, like conflicting dependencies and diamond dependency.
 
-#### An Example
+### An Example
 
 Here is an example of Go Modules:
 
@@ -55,15 +53,15 @@ func main () {
 }
 ```
 
-#### How to Enable Go Modules
+### How to Enable Go Modules
 
 In order to use Go Modules, you need to upgrade your Go to v1.11 or any later version and set the environment variable `export GO111MODULE=on`.
 
-#### When to Use Go Modules
+### When to Use Go Modules
 
 **The purpose of Go Modules is to let one or more packages be versioned, released and retrieved together as a single unit. Therefore, the public packages, for example, Go libraries and SDKs, are major targets of Go Modules as they need to be published properly for public use.** You do not need to convert internal packages or any internal-used-only packages within a microservice repository to Go modules. These packages can directly import and use modules once Go Modules feature is enabled, even if they are not converted to modules.
 
-### Semantic Import Versioning
+## Semantic Import Versioning
 
 [Semantic Import Versioning](https://blog.vendasta-internal.com/blog/BL-MXJ6MTS8/) is a method proposed for adopting [Semantic Versioning](https://semver.org/) in Go packages and modules. The idea behind it is embedding the major version (say `v2`) in the package path (for packages) or the module path (for modules) with the following rules:
 
@@ -74,7 +72,7 @@ The following picture demonstrates the rules above:
 
 ![Semantic Import Versioning](https://raw.githubusercontent.com/azhuox/blogs/master/golang/go_modules/images/semantic-import-versioning.png)
 
-#### Releasing
+### Releasing
 
 **With Go Modules and Semantic Import Versioning, you can release your modules by creating git tags. A tag corresponds to a version.** For example, the following git command releases the `bar` module `v2.3.3`:
 
@@ -86,13 +84,13 @@ You can read  [my last blog](https://blog.vendasta-internal.com/blog/BL-MXJ6MTS8
 
 **All in all, Go Modules provides a way to group one or more packages as a single retrievable unit, while Semantic Import Versioning is a method for applying Semantic Versioning in Go packages and modules to make them versioned. These two things are designed for breaking a repository into multiple retrievable units (modules), so that Go can grabs dependencies at the module granularity rather than the repository granularity.**
 
-## Utilizing Go Modules
+# Utilizing Go Modules
 
-### General Guide of Converting Go Packages to Go Modules
+## General Guide of Converting Go Packages to Go Modules
 
 I wrote [a dummy package](https://github.com/azhuox/blogs/tree/master/golang/go_modules/example/module) called `module` for demonstrating how to convert one or more Go packages to a Go module.
 
-#### Converting
+### Converting
 
 It is very easy to convert one or more Go packages to a Go module. Take the `module` package as an example, here are the steps of converting it to a Go module:
 
@@ -121,7 +119,7 @@ Go utilizes the following roles to grab the module's dependencies:
 It grabs the latest version for the packages that have been converted to modules. For example, `rsc.io/quote v1.5.2`.
 It grabs the latest commit for the packages that have not been converted to modules with the format `v0.0.0-{data}-{commit_id}`. For example, `golang.org/x/net v0.0.0-20190328230028-74de082e2cca`.
 
-#### Releasing
+### Releasing
 
 A module can only be used as a module after it is released. A module is released by creating git tags and each tag corresponds to a version. However, there are two problems we need to solve before releasing a module.
 
@@ -139,7 +137,7 @@ Now let us come back to the module example and release its latest version. Here 
 2. Add a note under the `v2.0.1` release note in the `CHANGELOG.md` file to indicate that the package is converted to a module in and after this version.
 3. Release `v2.0.1` by creating a git tag: `git tag golang/go_modules/example/module/v2.0.1 && git push -q origin master golang/go_modules/example/module/v2.0.1`
 
-#### Consuming A Module
+### Consuming A Module
 
 You can still use this package, without Go Modules enabled, by using some Go dependency management tool (e.g. `dep`) with the following specification. This will grab the whole repository which includes the `module` module for your build.
 
@@ -283,14 +281,14 @@ git tag golang/go_modules/example/micro-service/sdks/go/v1.0.2 && git push -q or
 
 **It is very easy to utilize Go Modules in a a microservice. We just add `ENV GO111MODULE=on` to the Dockerfile to enable Go Modules feature and then remove the `Gopkg.toml` and `Gopkg.lock` file and the whole `vendor` directory. EASY.**
 
-## Summary
+# Summary
 
 - Go Modules allows you group one or more packages to a single unit which is released and retrieved together.
 - Semantic Import Versioning is a method for applying Semantic Versioning to Go packages and modules to make them versioned.
 - Only the publicly-used packages, for example, Go libraries and SDKs, need to convert to Go modules.
 - It is very easy to replace a legacy Go package management tool (e.g. dep) with Go modules.
 
-## Reference
+# Reference
 
 - [Go Modules](https://blog.golang.org/modules2019)
 - [Proposal: Versioned Go Modules](https://go.googlesource.com/proposal/+/master/design/24301-versioned-go.md)

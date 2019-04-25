@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: user-msvc
+  labels:
+    app: user-msvc
+spec:
+  containers:
+  - name: user-msvc
+    image: gcr.io/path/to/user-msvc:1.0.0
+    ports:
+    - name: secure-port
+      containerPort: 443
+      protocol: TCP
+    env:
+    ...
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+        cpu: 200m
+        memory: 200Mi
+
+  - name: cloudsql-proxy
+    image: gcr.io/cloudsql-docker/gce-proxy:1.12
+    command:
+      - /cloud_sql_proxy
+      - --dir=/cloudsql
+      - -instances=mysql_instance=tcp:3306
+      - -credential_file=/path/to/cloudsql/credentials.json
+    requests:
+      cpu: 50m
+      memory: 50Mi
+    limits:
+        cpu: 50m
+        memory: 100Mi

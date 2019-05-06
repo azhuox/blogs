@@ -12,7 +12,8 @@ What is included in this blog:
 
 The following picture shows the overview of PVs and PVCs.
 
-[image]
+![The Overview of Persistent Volumes and Persistent Volume Claims](https://github.com/azhuox/blogs/blob/master/kubernetes/pv_pvc/assets/pv-and-pvcs-overview.png?raw=true)
+
 
 From the picture you can see that:
 

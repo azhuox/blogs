@@ -114,12 +114,10 @@ require (
 )
 ```
 
-**
-Go utilizes the following roles to grab the module's dependencies:
+**Go utilizes the following roles to grab the module's dependencies:
 
 It grabs the latest version for the packages that have been converted to modules. For example, `rsc.io/quote v1.5.2`.
-It grabs the latest commit for the packages that have not been converted to modules with the format `v0.0.0-{date}-{first_12_characters_of_commit_id}`. For example, `golang.org/x/net v0.0.0-20190328230028-74de082e2cca`.
-**
+It grabs the latest commit for the packages that have not been converted to modules with the format `v0.0.0-{date}-{first_12_characters_of_commit_id}`. For example, `golang.org/x/net v0.0.0-20190328230028-74de082e2cca`.**
 
 ### Releasing
 
@@ -316,7 +314,6 @@ Suppose we want to build docker images with the `vendor` directory and use the l
 1. Get the version: `go get github.com/azhuox/blogs/golang/go_modules/example/libs/libc@v1.5.0`.
 2. Update the `vendor` directory: `go mod vendor`.
 
-**
 This may not work when the microservice is not using any new feature released after the current version of `libc` (v1.0.0 in this case). To force update it, we need to add a replace statement in the `go.mod` file and then run `go mod vendor`:
 
 ```
@@ -324,7 +321,6 @@ replace (
     github.com/azhuox/blogs/golang/go_modules/example/libs/libc v1.0.0 github.com/azhuox/blogs/golang/go_modules/example/libs/libc v1.5.0
 )
 ```
-**
 
 
 # Summary

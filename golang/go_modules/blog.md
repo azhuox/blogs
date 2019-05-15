@@ -116,8 +116,8 @@ require (
 
 Go utilizes the following roles to grab the module's dependencies:
 
-**It grabs the latest version for the packages that have been converted to modules. For example, `rsc.io/quote v1.5.2`.**
-**It grabs the latest commit for the packages that have not been converted to modules with the format `v0.0.0-{date}-{first_12_characters_of_commit_id}`. For example, `golang.org/x/net v0.0.0-20190328230028-74de082e2cca`.**
+**1. It grabs the latest version for the packages that have been converted to modules. For example, `rsc.io/quote v1.5.2`.**
+**2. It grabs the latest commit for the packages that have not been converted to modules with the format `v0.0.0-{date}-{first_12_characters_of_commit_id}`. For example, `golang.org/x/net v0.0.0-20190328230028-74de082e2cca`.**
 
 ### Releasing
 

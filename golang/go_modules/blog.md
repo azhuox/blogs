@@ -59,7 +59,7 @@ In order to use Go Modules, you need to upgrade your Go to v1.11 or any later ve
 
 ### When to Use Go Modules
 
-**The purpose of Go Modules is to let one or more packages be versioned, released and retrieved together as a single unit. Therefore, the public packages, for example, Go libraries and SDKs, are major targets of Go Modules as they need to be published properly for public use.** You do not need to convert internal packages or any internal-used-only packages within a microservice repository to Go modules. These packages can directly import and use modules once Go Modules feature is enabled, even if they are not converted to modules.
+**The major purpose of Go Modules is to let one or more packages be versioned, released and retrieved together as a single unit. Therefore, the public packages, for example, Go libraries and SDKs, are major targets of Go Modules as they need to be published properly for public use.** You do not need to convert internal packages or any internal-used-only packages within a microservice repository to Go modules. These packages can directly import and use modules once Go Modules feature is enabled, even if they are not converted to modules.
 
 ## Semantic Import Versioning
 
@@ -82,7 +82,7 @@ git tag bar/v2.3.3 && git push -q origin master bar/v2.3.3
 
 You can read  [my last blog](https://github.com/azhuox/blogs/blob/master/golang/semantic_import_versioning/blog.md) for more details about how to releases modules with Semantic Import Versioning.
 
-**All in all, Go Modules provides a way to group one or more packages as a single retrievable unit, while Semantic Import Versioning is a method for applying Semantic Versioning in Go packages and modules to make them versioned. These two things are designed for breaking a repository into multiple retrievable units (modules), so that Go can grabs dependencies at the module granularity rather than the repository granularity.**
+**All in all, Go Modules provides a way to group one or more packages as a single retrievable unit, while Semantic Import Versioning is a method for applying Semantic Versioning in Go packages and modules to make them versioned. These two things are designed for breaking a repository into multiple retrievable units (modules), so that Go can grab dependencies at the module granularity rather than the repository granularity.**
 
 # Utilizing Go Modules
 
@@ -114,10 +114,12 @@ require (
 )
 ```
 
+**
 Go utilizes the following roles to grab the module's dependencies:
 
 It grabs the latest version for the packages that have been converted to modules. For example, `rsc.io/quote v1.5.2`.
-It grabs the latest commit for the packages that have not been converted to modules with the format `v0.0.0-{data}-{commit_id}`. For example, `golang.org/x/net v0.0.0-20190328230028-74de082e2cca`.
+It grabs the latest commit for the packages that have not been converted to modules with the format `v0.0.0-{date}-{first_12_characters_of_commit_id}`. For example, `golang.org/x/net v0.0.0-20190328230028-74de082e2cca`.
+**
 
 ### Releasing
 
@@ -227,7 +229,7 @@ git tag golang/go_modules/example/libs/libc/v1.0.0 && git push -q origin master 
 You can see the `libc` package is converted to a module correctly and it can retrieve the `liba` and `libb` modules in its build without any problem.
 
 
-## Go Modules and Micro Services
+## Go Modules and Microservices
 
 I wrote [a dummy micro-service](https://github.com/azhuox/blogs/tree/master/golang/go_modules/example/micro-service) for demonstrating how to utilize Go Modules in a microservice. Here is its project layout:
 
@@ -277,16 +279,60 @@ git commit ./go.mod ./go.sum -q -m "Convert micro-service/sdks/go to a module" &
 git tag golang/go_modules/example/micro-service/sdks/go/v1.0.2 && git push -q origin master golang/go_modules/example/micro-service/sdks/go/v1.0.2
 ```
 
-### Utilizing Go Modules in the Micro Service
+### Utilizing Go Modules in the Microservice
 
-**It is very easy to utilize Go Modules in a a microservice. We just add `ENV GO111MODULE=on` to the Dockerfile to enable Go Modules feature and then remove the `Gopkg.toml` and `Gopkg.lock` file and the whole `vendor` directory. EASY.**
+Go Modules in this case refers to the new Go package management tool called [vgo](https://github.com/golang/go/wiki/vgo) which is integrated in go tools like `go get` and `go mod`. The following steps demonstrate how to use it to manage the dependencies for the microservice:
+
+1. Launch a terminal and then enable Go Modules in the terminal: `export GO111MODULE=on`.
+2. Cd the root directory of the microservice.
+3. Add a `go.mod` file to the root directory of the microservice: `go mod init github.com/azhuox/blogs/golang/go_modules/example/micro-service`.
+4. Run or test the microservice to ensure that everything works fine: `go run ./server/main.go`. This will generate a file called `go.sum` if everything goes well.
+5. Remove the files for the old dependency management tool, which is `Gopkg.toml` and `Gopkg.lock` in this case.
+5. Commit the changes.
+
+Now we successfully replace the old dependency management tool with Go Modules. However, there are two cases we need to deal with in the Continuous Integration (CI) process: with vendor or without vendor.
+
+
+#### CI Without Vendor
+
+Without vendors means utilizing Go Modules to dynamically grab dependencies when building docker images during the CI process. In order to do this, we need to do the following steps:
+
+1. Add an environment variable `ENV GO111MODULE=on` in the Dockerfile to enable Go Modules.
+2. Remove the `vendor` directory since we don't need it anymore.
+3. Commit the changes.
+
+#### CI With Vendor
+
+With vendor means we want to dump all the dependencies into the `vendor` directory and let the CI build the docker image based on the `vendor` directory. The following steps demonstrate how to do it:
+
+1. Dump all the dependencies into the `vendor` directory: `go mod vendor`.
+2. Commit the changes.
+3. If Go Modules is enabled in the CI tool, add the `-mod=vendor` in the `go build` step in the Dockerfile: `go build -mod=vendor -o /usr/bin/micro-service github.com/azhuox/blogs/golang/go_modules/example/micro-service/server && rm -rf $GOPATH/*`.
+
+#### Update A Dependency in the `vendor` Directory
+
+Suppose we want to build docker images with the `vendor` directory and use the latest version of `libc` (say v1.5.0) in the microservice. The following steps demonstrates the update process:
+
+1. Get the version: `go get github.com/azhuox/blogs/golang/go_modules/example/libs/libc@v1.5.0`.
+2. Update the `vendor` directory: `go mod vendor`.
+
+**
+This may not work when the microservice is not using any new feature released after the current version of `libc` (v1.0.0 in this case). To force update it, we need to add a replace statement in the `go.mod` file and then run `go mod vendor`:
+
+```
+replace (
+    github.com/azhuox/blogs/golang/go_modules/example/libs/libc v1.0.0 github.com/azhuox/blogs/golang/go_modules/example/libs/libc v1.5.0
+)
+```
+**
+
 
 # Summary
 
 - Go Modules allows you group one or more packages to a single unit which is released and retrieved together.
 - Semantic Import Versioning is a method for applying Semantic Versioning to Go packages and modules to make them versioned.
-- Only the publicly-used packages, for example, Go libraries and SDKs, need to convert to Go modules.
-- It is very easy to replace a legacy Go package management tool (e.g. dep) with Go modules.
+- Only the publicly-used packages, for example, Go libraries and SDKs, need to convert to Go modules (which produces the modules).
+- It is very easy to replace a legacy Go package management tool (e.g. dep) with Go modules (which consumes the modules).
 
 # Reference
 
@@ -297,4 +343,5 @@ git tag golang/go_modules/example/micro-service/sdks/go/v1.0.2 && git push -q or
 - [Semantic Versioning](https://semver.org/)
 - [Semantic Import Versioning in Go](https://github.com/azhuox/blogs/blob/master/golang/semantic_import_versioning/blog.md)
 - [Defining Go Modules](https://research.swtch.com/vgo-module#from_repository_to_modules)
+- [vgo](https://github.com/golang/go/wiki/vgo)
 

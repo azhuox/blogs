@@ -1,0 +1,15 @@
+# github.com/azhuox/blogs/golang/go_modules/example/libs/liba v1.1.0
+github.com/azhuox/blogs/golang/go_modules/example/libs/liba
+# github.com/azhuox/blogs/golang/go_modules/example/libs/libb v1.0.0
+github.com/azhuox/blogs/golang/go_modules/example/libs/libb
+# github.com/azhuox/blogs/golang/go_modules/example/libs/libc v1.0.0
+github.com/azhuox/blogs/golang/go_modules/example/libs/libc
+# golang.org/x/net v0.0.0-20190514140710-3ec191127204
+golang.org/x/net/context
+# golang.org/x/text v0.3.0
+golang.org/x/text/language
+golang.org/x/text/internal/tag
+# rsc.io/quote v1.5.2
+rsc.io/quote
+# rsc.io/sampler v1.3.0
+rsc.io/sampler

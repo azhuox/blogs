@@ -61,6 +61,7 @@ In order to use Go Modules, you need to upgrade your Go to v1.11 or any later ve
 
 **The major purpose of Go Modules is to let one or more packages be versioned, released and retrieved together as a single unit. Therefore, the public packages, for example, Go libraries and SDKs, are major targets of Go Modules as they need to be published properly for public use.** You do not need to convert internal packages or any internal-used-only packages within a microservice repository to Go modules. These packages can directly import and use modules once Go Modules feature is enabled, even if they are not converted to modules.
 
+------
 ## Semantic Import Versioning
 
 [Semantic Import Versioning](https://github.com/azhuox/blogs/blob/master/golang/semantic_import_versioning/blog.md) is a method proposed for adopting [Semantic Versioning](https://semver.org/) in Go packages and modules. The idea behind it is embedding the major version (say `v2`) in the package path (for packages) or the module path (for modules) with the following rules:
@@ -84,6 +85,9 @@ You can read  [my last blog](https://github.com/azhuox/blogs/blob/master/golang/
 
 **All in all, Go Modules provides a way to group one or more packages as a single retrievable unit, while Semantic Import Versioning is a method for applying Semantic Versioning in Go packages and modules to make them versioned. These two things are designed for breaking a repository into multiple retrievable units (modules), so that Go can grab dependencies at the module granularity rather than the repository granularity.**
 
+------
+
+------
 # Utilizing Go Modules
 
 ## General Guide of Converting Go Packages to Go Modules
@@ -150,7 +154,7 @@ branch = "master"
 
 With Go Modules, what you need to do is import and use the module in your Go program and run `go build`. It will automatically grab the `golang/go_modules/example/module/v2.0.1` module other than the whole repository for your build.
 
-
+------
 ## Converting Go Libraries to Go Modules
 
 The section above already demonstrates how to convert one or more Go packages to a Go module. This section majorly talks about how to convert all the Go packages (libraries) within the same repository to Go modules.
@@ -227,7 +231,7 @@ git tag golang/go_modules/example/libs/libc/v1.0.0 && git push -q origin master 
 
 You can see the `libc` package is converted to a module correctly and it can retrieve the `liba` and `libb` modules in its build without any problem.
 
-
+------
 ## Go Modules and Microservices
 
 I wrote [a dummy micro-service](https://github.com/azhuox/blogs/tree/master/golang/go_modules/example/micro-service) for demonstrating how to utilize Go Modules in a microservice. Here is its project layout:
@@ -323,7 +327,9 @@ replace (
 )
 ```
 
+------
 
+------
 # Summary
 
 - Go Modules allows you group one or more packages to a single unit which is released and retrieved together.

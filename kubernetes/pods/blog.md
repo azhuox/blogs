@@ -7,7 +7,7 @@ What is included in this blog:
 # Kubernetes Pods
 A [Kubernetes (K8s) Pod](https://kubernetes.io/docs/concepts/workloads/pods/pod/) is a smallest deploy-able unit in K8s. It is essentially is a group of one or more containers (e.g. Docker containers) which share the computing resources including storage and network and each container can request to have its own CPU and memory resources. As shown in the following picture, a Pod is like an application specific "host" running one or more "processes" (containers). These "processes" work together to provides some kind of service.
 
-[image]
+![Hosts V.S. Pods](https://github.com/azhuox/blogs/blob/master/kubernetes/pods/assets/host_vs_pod.png?raw=true)
 
 # Use of Pods
 The following example demonstrates how to use K8s Pods to construct a single-replica microservice. This Pod consists of three containers: the `user-usvc` containers has all the microservice's business log, the `cloudsql-proxy` container proxies all the MySQL operations to a Google Cloud SQL instance, while the `datadog-agent` container sends the logs to datadog.
@@ -124,9 +124,9 @@ Network is another shared resource among the containers running in the same Pod,
 
 In this example, the `cloudsql-proxy` container exposes itself by opening the port `3306`. So that the `user-msvc` container is able to connect to it through `127.0.0.1:3306`. Moreover, the `user-msvc` container opens the `443` port and a K8s [LoadBalancer Service](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer) `user-msvc` is in charge of redirecting HTTPs to this port so that the `user-msvc` container can handle them.
 
+The following picture shows what the `user-msvc` microservice looks like in Kubernetes world.
 
-Final Result:
-[image]
+![user-msvc Topology](https://github.com/azhuox/blogs/blob/master/kubernetes/pods/assets/user_msvc_topology.png?raw=true)
 
 # What is Next
 

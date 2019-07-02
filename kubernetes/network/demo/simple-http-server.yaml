@@ -15,7 +15,7 @@ spec:
         app: http-server
     spec:
       containers:
-        - name: simple-http
+        - name: simple-http-server
           image: python:2.7
           imagePullPolicy: IfNotPresent
           command: ["/bin/bash"]

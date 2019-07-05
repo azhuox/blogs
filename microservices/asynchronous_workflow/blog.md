@@ -124,7 +124,66 @@ In this API, the `bootstrap site in DB` task needs to be triggered by the `creat
 
 ## Task Execution
 
-## The State
+**The key point of make an asynchronous workflow robust is to make each task worker robust enough to finish its tasks. The success of the workflow is built on the success of every task worker.** Now let us take the `save site metadata` task worker as an example to discuss how to build a robust worker.
+
+The following pseudo code shows how to launch the `save site metadata` task workers in Golang. The `repo.processSaveSiteMetadataTask()` method is the task handler It can process at most 20 tasks at the same time. The back off configuration specifies that a failed task will be retried in 3 seconds, 3 * 2 seconds, 3 * 2 * 2 seconds... until it succeeds. **A task is only considered successful when the `repo.processSaveSiteMetadataTask()` exits without any error. Any error or any aborted operation will trigger a retry.**
+
+```go
+// LaunchSaveSiteMetadataWorkers launches the workers for saving site metadata to the system.
+func (r *repo) LaunchSaveSiteMetadataWorkers() {
+    // Backoff is a time.Duration counter used for retry
+    backoff := &cloudtasks.Backoff{
+        Min: 3 * time.Second,       // Min is the minimum time to wait before retry.
+        Max: 0,                     // Max == 0 means there is no limitation of `wait_time * Factor`.
+        Factor: 2,                  // Factor is the multiplying factor for each increment step.
+    }
+
+	w := cloudtasks.NewWorker(
+		r.QueueSaveSiteMetadata,    // Where to fetch the tasks.
+		r.processSaveSiteMetadataTask,         // The task handler for processing the tasks of saving a site metadata to the database.
+		cloudtasks.WithLeaseDuration(1*time.Minute),    // The timeout for each task.
+		cloudtasks.WithMaximumTasksPerLease(20),        // The maximum tasks that be processed simultaneously.
+		cloudtasks.WithHandlerBackoff(SendGAExecReportTaskBackOff),
+	)
+	go w.Work(m.ctx)
+}
+```
+
+The following pseudo code shows the major workflow of the `repo.processSaveSiteMetadataTask()` method.
+
+```go
+// processSaveSiteMetadataTask processes the tasks of saving site metadata to the system.
+// The `task` object contains an ID, a payload which has all the site metadata, and a number to track how many attempts
+// have been made to complete this task.
+func (r *repo) processSaveSiteMetadataTask(task *cloudtasks.Task) error {
+    // Parse the site metadata from the task payload.
+    metadata, err := parseMetadataFromPayload(task.Payload)
+    if err != nil {
+        return fmt.Errorf("error parsing the payload from the task %s, err: %s", task.ID, err.Error())
+    }
+
+    // Save the metadata to the database.
+    if err = r.saveSiteMetadata(); err != nil {
+        return fmt.Errorf("error saving the metadata to the system for site %s, err: %s", metadata.SiteID, err.Error())
+    }
+
+    // Distribute a `create site FS` task
+    if err = r.distributeCreateSiteFSTask(metadata); err != nil {
+        return fmt.Errorf("error distributing a task to create FS for site %s, err: %s", metadata.SiteID, err.Error())
+    }
+
+     // Distribute a `create site DB` task
+    if err = r.distributeCreateSiteDBTask(metadata); err != nil {
+        return fmt.Errorf("error distributing a task to create DB for site %s, err: %s", metadata.SiteID, err.Error())
+    }
+
+    return nil
+}
+```
+
+You can that the `repo.processSaveSiteMetadataTask()` method consists of four sequential steps. Any failure in any step will trigger the retry and it will retry forever until it succeeds. This sounds pretty robust right? The answer is yes and **NO**. The retry mechanism does make task workers really robust but there is a side affect: Suppose the front end times out and send a request to delete the site that is being created so that the customer can retry, while the `repo.processSaveSiteMetadataTask()` method failed several times but is still trying to save the site metadata to the system. The delete API finishes quickly as nothing has been created. Now the `repo.processSaveSiteMetadataTask()` finally succeeds: it saves the site metadata to the database and distributes the `create site FS` and `create site DB` tasks. This causes two problems: 1. The free domain that the customer wants is locked. 2. Some garbage data was created and never gets a chance to be cleaned up. **Based on the above discussion, you can see that these task workers need to abort the work in some scenarios.** But how to do that? We need to introduce a variable, the state, to control this.
+
+## Task State
 
 ## Site status
 

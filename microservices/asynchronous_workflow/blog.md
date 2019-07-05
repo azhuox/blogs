@@ -2,7 +2,7 @@
 
 # Preface
 
-When developing a microservice in a container-orchestration system, for example, Kubernetes, there are several things that we need to keep in mind all the time:
+When developing a microservice in a container-orchestration system like Kubernetes using a [Kubernetes Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/), there are several things that we need to keep in mind all the time:
 
 1. Pods are mortal and they won’t be able to survive scheduling failures, node failures or other evictions.
 2. ANYTHING can fail ANY TIME for whatever naughty reasons.
@@ -83,9 +83,6 @@ The following picture shows the workflow of the asynchronous `site creation` API
 
 [image]
 
-The following picture demonstrates the dependencies between each task worker.
-[image]
-
 Here is the brief workflow of this asynchronous API:
 
 1. The customer fills the `create a site` form and submits the request.
@@ -105,17 +102,37 @@ Apparently the above workflow is too simple to explain this API. Now let us go t
 
 You may notice that this API consists of two parts: the synchronous part and the asynchronous part.
 
-The synchronous part includes the steps to perform the auth check, validate the arguments, create the state and distribute a `create site metadata` task (to trigger the asynchronous workflow). The synchronous part normally plays two important roles. Firstly, it acts as a gateway and filters out those bad (4**) requests. For example, while validating the arguments, it needs to ensure that the domain that the customer provides has not existed in the system. Secondly it triggers the asynchronous workflow to process the request. **The synchronous part is very fragile as the failure of of any step in this part will lead to the failure of the API. A request can be considered accepted and the system will try its best to process it only when it goes through the synchronous part successfully**
+The synchronous part includes the steps to perform the auth check, validate the arguments, create the state and distribute a `create site metadata` task (to trigger the asynchronous workflow). The synchronous part normally plays two important roles. Firstly, it acts as a gateway and filters out those bad (4**) requests. For example, while validating the arguments, it needs to ensure that the domain that the customer provides has not existed in the system. Secondly it triggers the asynchronous workflow to process the request. **The synchronous part is very fragile as the failure of of any step in this part will lead to the failure of the API. Additionally, it may fail in any step as there is no retry mechanism to ensure its final success. Therefore the synchronous part should not do too much work.**
 
 The asynchronous part is the key of this API. It consists of multiple task workers and each worker does one part of job to make its contribution to complete the request. A request is guaranteed to be processed and completed when it reaches the asynchronous part.
+
+## Task Schedulers and Task Workers
+
+The following picture demonstrates the relationship between each task worker. You can see that a task worker can be the task scheduler for other workers and the chain of these workers indicates the site creation workflow. It is like an assembly line where each worker finishes its task to move the creating job forward until the project is made.
+
+[image]
+
+### Parallel Execution
+
+Parallel Execution is meant to execute multiple tasks simultaneously to short the API execution time. As shown in the following picture, the creation of site's metadata, file system and database can be performed in parallel in this workflow. However, there will a potential problem if we realize the API in this way. That is, the workflow will be out of control when the `repo.CreateSiteAsync()` method successfully distribute the `save site metadata` task but fails to other tasks. The `repo.CreateSiteAsync()` method returns an internal error (5**) back to the front end. The customer can retry later but he may not be able to use the same domain. This is because the `save site metadata` task has been trigger in the last API and may have been executed successfully, which means the domain that the customer chooses already exists in the system and cannot be used anymore. Therefore, as shown in the above picture, instead of giving the `repo.CreateSiteAync()` three "keys" to start three workers, it is better to reduce the key number to just one: whether the request is accepted depends on whether the `save site metadata` task is successfully distributed. The downside is now the `create site FS` and `create site DB` tasks need to rely on the `save site metadata` task although they do not logically depend on each other. However, this is totally worth as it makes the system safer.
+
+[image]
+
+### Sequential Execution
+
+In this API, the `bootstrap site in DB` task needs to be triggered by the `create site DB` task. This is because a site can only be bootstrapped (initialized) when its database is created.
+
+## Task Execution
+
+## The State
 
 ## Site status
 
 ## Roll Back
 
 
-
 # Reference
+- [Kubernetes Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/)
 - [Choosing Between Cloud Tasks and Cloud Pub/Sub](https://cloud.google.com/tasks/docs/comp-pub-sub)
 - [Google Cloud Tasks](https://cloud.google.com/tasks/)
 - [Buddha Jumps Over the Wall](https://en.wikipedia.org/wiki/Buddha_Jumps_Over_the_Wall)

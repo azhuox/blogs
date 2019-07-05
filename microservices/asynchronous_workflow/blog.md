@@ -27,13 +27,13 @@ The following picture demonstrates the workflow of a synchronous `site creation`
 
 1. A customer creates an account in the system and logs in. Well this involves with another complicated workflow. So let us assume everything works well and the customer finishes this within 5 seconds.
 2. The customer goes to the front end and `site creation` page.
-3. The customer inputs the site name, tagline and the name of a free domain he wants, for example, `free-domain-part`.we-host-sites-for-you-and-this-domain-is-too-long.com. The customer submits the site creation page and starts enjoying an animation which indicates the site is being built, and prepares to be excited about exploring his site.
+3. The customer inputs the site name, tagline and the name of a free domain he wants, for example, `free-domain-part`.we-host-sites-for-you-and-this-domain-is-too-long.com. Then the customer submits the site create request and starts enjoying an animation which indicates the site is being built, and prepares to be excited about exploring his site.
 4. The front end sends the requests to the site-manager microservice.
 5. The site-manager's API server receives the request, performs the authorization and authentication checks and calls the site-manager's service to process the request if the checks are passed.
 6. The site-manager's service has no business logic to process so it just delegates the request to the site-manager's repo.
 7. The site-manager's repo execute the following steps to process the request:
     a. It validates all the arguments. It will return an error if some arguments are invalid.
-    b. It saves the site metadata to the database. It will abort the operation and return an error if an error occurs.
+    b. It generate an UUID as the site ID and saves it with other site metadata to the database. It will abort the operation and return an error if an error occurs.
     c. It creates the site in the file system. It will abort the operation, trigger rollback and return an error if an error occurs.
     d. It creates a database for the site. It will abort the operation, trigger rollback return an error if an error occurs.
     e. It calls a WordPress API to bootstrap the site in the database. It will abort the operation, trigger rollback return an error if an error occurs.
@@ -73,18 +73,41 @@ Let us assume that [Google Cloud Tasks] is adopted to realize this workflow. Exc
 - Access and management of individual tasks in a queue
 - Task/message creation deduplication
 
-Now let us discuss how to realize an asynchronous `site creation` API with Google Cloud Tasks and the principles mentioned above.
+Now let us discuss how to realize an asynchronous `site creation` API using Google Cloud Tasks and the principles mentioned above.
 
 # Asynchronous Message Driven Workflow
 
 ## Overview
 
 The following picture shows the workflow of the asynchronous `site creation` API:
--
+
+[image]
+
+The following picture demonstrates the dependencies between each task worker.
+[image]
+
+Here is the brief workflow of this asynchronous API:
+
+1. The customer fills the `create a site` form and submits the request.
+2. The front end sends the requests to the site-manager microservice.
+3. The site-manager's API server receives the request, performs the authorization and authentication checks and calls the site-manager's service to process the request if the checks are passed.
+4. The site-manager's service delegates the request to the site-manager's repo.
+5. The site-manager's repo performs the following steps:
+ a. It validates all the arguments and will return an error if some arguments are invalid.
+ b. It creates the state data in the database for the following task workers, and will return an error if fails.
+ c. It distributes a `create site metadata` task.
+6. The site-manager's API server returns 202 (request accept) to the front end.
+7. The task workers in the site-manager's repo start working to create the site in the system.
+
+Apparently the above workflow is too simple to explain this API. Now let us go through every part of the API explore more details.
 
 ## Synchronous to asynchronous
 
-## Task Exmination
+You may notice that this API consists of two parts: the synchronous part and the asynchronous part.
+
+The synchronous part includes the steps to perform the auth check, validate the arguments, create the state and distribute a `create site metadata` task (to trigger the asynchronous workflow). The synchronous part normally plays two important roles. Firstly, it acts as a gateway and filters out those bad (4**) requests. For example, while validating the arguments, it needs to ensure that the domain that the customer provides has not existed in the system. Secondly it triggers the asynchronous workflow to process the request. **The synchronous part is very fragile as the failure of of any step in this part will lead to the failure of the API. A request can be considered accepted and the system will try its best to process it only when it goes through the synchronous part successfully**
+
+The asynchronous part is the key of this API. It consists of multiple task workers and each worker does one part of job to make its contribution to complete the request. A request is guaranteed to be processed and completed when it reaches the asynchronous part.
 
 ## Site status
 

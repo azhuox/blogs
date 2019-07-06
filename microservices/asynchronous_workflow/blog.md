@@ -318,10 +318,15 @@ Now let us talk about worse case that can happen: The front end times out and se
 This blog discusses a status driven asynchronous workflow which can be used to process complicated jobs. The following are the key points of method:
 
 - A complicated job is separated to multiple smaller tasks. One or more task workers are introduced to processed these tasks.
-- Each task work retries forever until it finishes its task.
+- Each task work retries forever until it finishes its task and there is no roll back.
 - A status driven assembly line is constructed by these task workers to process the job: each task worker processes one task of the job, updates the (status) of the job and move it forward. The job is considered completed only when it successfully goes through the whole assembly line.
+- One assembly line for one kind of job, which makes it easier to realize the whole system.
 
+This workflow can be very helpful for building robust software. However, it is a little bit complicated that you may be wondering whether it is worth to build utilize a workflow? Well, it is definitely not necessary to apply this workflow to those simple CRUD operations. However, I think it is totally worth to use it to process complicated jobs. Take the `create site` job as an example, The synchronous API may have 99.5% availability while the asynchronous version realized this workflow may increase the availability to 99.99%. It is a your choice whether to get 0.49% improvement or not.
 
+It reminds me of a famous Chinese cuisine called [Buddha Jumps Over the Wall](https://en.wikipedia.org/wiki/Buddha_Jumps_Over_the_Wall) when I am writing this blog. This cuisine needs a dozen of ingredients and has a dozen steps. It takes almost a day to cook and any step's failure can ruin the dish. Building a software is very similar to cooking a cuisine where every piece needs to be well designed and realized. The quality of the software highly depends on how you "cook" it.
+
+At the end, I hope you enjoy reading this "receipt" _>
 
 # Reference
 - [Kubernetes Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/)

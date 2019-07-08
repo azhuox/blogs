@@ -44,37 +44,30 @@ The following picture demonstrates the workflow of the synchronous version this 
 Now let us take several seconds to "judge" this API: what will happen if a Pod gets "murdered" when it is executing this API? What is the next to do to rescue the whole job when the API successfully saves the site metadata in the database but fails to creates the file in the File System? What if the API fails and the rollback fails as well?  What if it takes a long time to bootstrap a site in the database and causes timeout? The simple answer is the API will fail. The more sophisticated answer is the API will fail and potentially leave some piece of dangling data in the system and the customer may not be happy especially after waiting for like 30 seconds.
 
 # An Solution
-From the above example, you can see that it is not a good idea to process such a complicated and time-consuming job in a synchronous API, as it can fail any time but cannot handle the failure properly. We need to build an robust and transaction-safe API to replace the synchronous one. There are several principles we should consider when developing such an asynchronous workflow:
+From the above example, you can see that it is not a good idea to process such a complicated and time-consuming job in a synchronous API, as it can fail any time but cannot handle the failure properly. We need to build an robust and transaction-safe asynchronous API to replace the synchronous one. There are several principles we should consider when developing new the API:
 
-1. We should break this complicated task into multiple smaller and simpler tasks;
-2. Each task should have the retry mechanism to ensure its final success;
-3. Task B should be driven by task A if task B depends on task A;
-3. Some tasks can be executed simultaneously if they do not depend on each other;
-4. A group of flags (or a `struct`) should be used to indicate the status of each task and the state of the whole workflow.
+1. We can break this complicated job into multiple smaller and simpler tasks.
+2. Each task should have the the retry mechanism to ensure that it can reach final success.
+3. Task B should be driven by task A if task B depends on task A.
+3. Some tasks can be executed simultaneously if they do not depend on each other.
 
 ## Technology Choices: Task Queue v.s. Pub/Sub
 
-From the above discussion, you can see that we need to utilize a technology for the system to distribute, store, fetch and execute the tasks. There are options we have: Task Queue and Pub/Sub. [This article](https://cloud.google.com/tasks/docs/comp-pub-sub) compares the difference between these two technologies using Google Cloud Tasks and Google Cloud Pub/Sub. From my view point, the key differences are:
-1. Pub/Sub aims to decouple publishers and subscribers. This means when a publisher publishes a event to a topic, he does not care who subscribed the topic and what subscribers will do to handle this event.
-2. Task Queue is aimed at explicit invocation where the publisher (aka. scheduler) retains full control of execution. More specifically the scheduler specifies where each message (task) is delivered and when each task to be delivered.
+We need to choose technology for the system to distribute, store, fetch and execute the tasks. There are options we have: Task Queue and Pub/Sub. [This article](https://cloud.google.com/tasks/docs/comp-pub-sub) compares the difference between these two technologies using Google Cloud Tasks and Google Cloud Pub/Sub. From my view point, the key differences are:
+1. Pub/Sub aims to decouple publishers and subscribers. This means when a publisher publishes a event to a topic, he does not care who subscribes the topic and what subscribers will do to handle this event.
+2. Task Queue is aimed at explicit invocation where a publisher (aka. scheduler) retains full control of execution. More specifically the scheduler specifies where each message (task) is delivered and when each task to be delivered., while the workers accept the tasks and process them.
 
 **All in all, Pub/Sub emphasizes on decoupling a publisher and his subscribers, while Task Queue is meant to chain a publisher (task scheduler) and its subscribers (task workers) together through messages (tasks).**
 
-Let us go back the example, I think Task Queue is the better choice in this case as some steps in this workflow depend on other ones. Additionally, Task Queue normally provides retries while Pub/Sub does not. Retires is key to ensure each task to reach the final success.
+I think Task Queue is the better choice in this case as some tasks in the workflow of this new API depend on the other ones. Additionally, Task Queue normally provides retries while Pub/Sub does not, which retries is key to ensure each task to reach the final success. Plus, Task Queue can provide task/message creation deduplication to avoid repeat execution of the same task.
 
-Let us assume that [Google Cloud Tasks] is adopted to realize this workflow. Excepts the advantages mentioned above, Google Cloud Tasks also provides the following features:
+Now assume that [Google Cloud Tasks] is adopted to realize the new API and let us discuss how to utilize this technology the above principles to realize the asynchronous site creation API.
 
-- Configurable retries with back off options
-- Access and management of individual tasks in a queue
-- Task/message creation deduplication
-
-Now let us discuss how to realize an asynchronous `site creation` API using Google Cloud Tasks and the principles mentioned above.
-
-# Asynchronous Message Driven Workflow
+# Asynchronous Task Driven Workflow
 
 ## Overview
 
-The following picture shows the workflow of the asynchronous `site creation` API:
+The following picture shows the workflow of this asynchronous `site creation` API:
 
 [image]
 

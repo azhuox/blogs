@@ -69,7 +69,7 @@ Now assume that [Google Cloud Tasks] is adopted and let us discuss how to utiliz
 
 ## Overview
 
-The following picture shows the workflow of the asynchronous version of the `site creation` API:
+The following picture shows the workflow of the asynchronous `site creation` API:
 
 [image]
 
@@ -101,19 +101,19 @@ The asynchronous part consists of multiple task workers and each worker processe
 
 ## Task Schedulers and Task Workers
 
-The following picture demonstrates the relationship between each task worker. You can see that a task worker can be the task scheduler for other workers and the chain of these workers indicates the site creation workflow. It is like an assembly line where each worker finishes its task to move the creating job forward until the project is made.
+The following picture demonstrates the relationship between each task worker. You can see that a task worker can be a task scheduler for other workers. Moreover, the chain of these workers represents the site creation workflow: an assembly line is constructed by these task workers to process the site creation job.
 
 [image]
 
 ### Parallel Execution
 
-Parallel Execution is meant to execute multiple tasks simultaneously to short the API execution time. As shown in the following picture, the creation of site's metadata, file system and database can be performed in parallel in this workflow. However, there will a potential problem if we realize the API in this way. That is, the workflow will be out of control when the `repo.CreateSiteAsync()` method successfully distribute the `save site metadata` task but fails to other tasks. The `repo.CreateSiteAsync()` method returns an internal error (5**) back to the front end. The customer can retry later but he may not be able to use the same domain. This is because the `save site metadata` task has been trigger in the last API and may have been executed successfully, which means the domain that the customer chooses already exists in the system and cannot be used anymore. Therefore, as shown in the above picture, instead of giving the `repo.CreateSiteAync()` three "keys" to start three workers, it is better to reduce the key number to just one: whether the request is accepted depends on whether the `save site metadata` task is successfully distributed. The downside is now the `create site FS` and `create site DB` tasks need to rely on the `save site metadata` task although they do not logically depend on each other. However, this is totally worth as it makes the system safer.
+Parallel Execution is meant to execute multiple tasks simultaneously to short the API execution time. As shown in the following picture, the `create site metadata`, `create site FS` and `create site DB` task can be all distributed in the `repo.CreateSiteAsync()` method in this workflow. However, there is a potential problem if we realize the API in this way. That is, the site creation process will be out of control when the `repo.CreateSiteAsync()` method successfully triggers the asynchronous workflow by distributing the `create site metadata` task but fails to distribute some tasks. In this case, the `repo.CreateSiteAsync()` method returns an internal error (5**) back to the front end. The customer can retry later but he may not be able to use the same domain. This is because the `save site metadata` task has been triggered in the last API and may have been successfully executed, which means the domain that the customer chose already exists in the system and cannot be used anymore. Therefore, as shown in the above picture, it is better to let the `repo.CreateSiteAync()` method starts the asynchronous workflow with just one "key": whether the request is accepted depends on whether the `save site metadata` task is successfully distributed. The downside is now the `create site FS` and `create site DB` task has to rely on the `save site metadata` task although they do not logically depend on each other. However, this is totally worth as it makes the system way more safer.
 
 [image]
 
 ### Sequential Execution
 
-In this API, the `bootstrap site in DB` task needs to be triggered by the `create site DB` task. This is because a site can only be bootstrapped (initialized) when its database is created.
+In this API, the `bootstrap site in DB` task worker needs to be triggered by the `create site DB` task worker. This is because a site can only be bootstrapped (initialized) in the database when its database is created.
 
 ## Task Execution
 

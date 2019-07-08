@@ -22,7 +22,7 @@ app:
 
 The following picture demonstrates the workflow of the synchronous version this API that was already built before you joined the team:
 
-1. A customer logs in the system and opens the `create a site` page.
+1. A customer logs in the system and opens the `site creation` page.
 2. The customer inputs the site name, tagline and the name of a free domain he wants, for example, `free-domain-part`.we-host-sites-for-you-and-this-domain-is-too-long.com. Then the customer submits the request and waits by watching an animation which indicates the site is being built.
 3. The front end sends the requests (with 30 seconds timeout) to the site-manager microservice.
 4. The site-manager's API server receives the request, performs the permission checks and calls the site-manager's service to process the request if the checks are passed.
@@ -47,9 +47,11 @@ Now let us take several seconds to "judge" this API: what will happen if a Pod g
 From the above example, you can see that it is not a good idea to process such a complicated and time-consuming job in a synchronous API, as it can fail any time but cannot handle the failure properly. We need to build an robust and transaction-safe asynchronous API to replace the synchronous one. There are several principles we should consider when developing new the API:
 
 1. We can break this complicated job into multiple smaller and simpler tasks.
-2. Each task should have the the retry mechanism to ensure that it can reach final success.
-3. Task B should be driven by task A if task B depends on task A.
-3. Some tasks can be executed simultaneously if they do not depend on each other.
+2. We can construct an assembly line where each task worker processes one task to move the job toward to the completion state. The success of the job is built on the top of the success of each task.
+3. Each task worker should have the the retry mechanism to ensure that it can successfully process the tasks it is assigned.
+4. Task worker B should be driven by task worker A if B depends on A.
+5. Some tasks can be executed simultaneously if they do not depend on each other.
+6. We can create an object in the database for trucking the status of the job.
 
 ## Technology Choices: Task Queue v.s. Pub/Sub
 
@@ -57,47 +59,45 @@ We need to choose technology for the system to distribute, store, fetch and exec
 1. Pub/Sub aims to decouple publishers and subscribers. This means when a publisher publishes a event to a topic, he does not care who subscribes the topic and what subscribers will do to handle this event.
 2. Task Queue is aimed at explicit invocation where a publisher (aka. scheduler) retains full control of execution. More specifically the scheduler specifies where each message (task) is delivered and when each task to be delivered., while the workers accept the tasks and process them.
 
-**All in all, Pub/Sub emphasizes on decoupling a publisher and his subscribers, while Task Queue is meant to chain a publisher (task scheduler) and its subscribers (task workers) together through messages (tasks).**
+**All in all, Pub/Sub emphasizes on decoupling a publisher and his subscribers, while Task Queue is meant to chain a publisher (task scheduler) and its subscribers (task workers) together through messages (tasks). Pub/sub is more suitable for the communication between microservice, while Task Queue is more suitable for constructing asynchronous workflow within a microservice.**
 
 I think Task Queue is the better choice in this case as some tasks in the workflow of this new API depend on the other ones. Additionally, Task Queue normally provides retries while Pub/Sub does not, which retries is key to ensure each task to reach the final success. Plus, Task Queue can provide task/message creation deduplication to avoid repeat execution of the same task.
 
-Now assume that [Google Cloud Tasks] is adopted to realize the new API and let us discuss how to utilize this technology the above principles to realize the asynchronous site creation API.
+Now assume that [Google Cloud Tasks] is adopted and let us discuss how to utilize this technology and the above principles to implement the asynchronous site creation API.
 
-# Asynchronous Task Driven Workflow
+# Task Based Asynchronous Workflow
 
 ## Overview
 
-The following picture shows the workflow of this asynchronous `site creation` API:
+The following picture shows the workflow of the asynchronous version of the `site creation` API:
 
 [image]
 
-Here is the brief workflow of this asynchronous API:
+Here is the brief workflow of this API:
 
-1. The customer fills the `create a site` form and submits the request.
-2. The front end sends the requests to the site-manager microservice.
-3. The site-manager's API server receives the request, performs the authorization and authentication checks and calls the site-manager's service to process the request if the checks are passed.
+1. The customer fills the `site creation` form and submits the request.
+2. The front end sends the requests (with 30 seconds timeout) to the site-manager microservice.
+3. The site-manager's API server receives the request, performs the permissions checks and calls the site-manager's service to process the request if the checks are passed.
 4. The site-manager's service delegates the request to the site-manager's repo.
-5. The site-manager's repo performs the following steps:
+5. The site-manager's repo performs the following steps to process the request:
  a. It validates all the arguments and will return an error if some arguments are invalid.
- b. It creates the state data in the database for the following task workers, and will return an error if fails.
+ b. It creates an object (let us call it `site status`) in the database for tracking the status of the creating site, and will return an error if fails.
  c. It distributes a `create site metadata` task.
-6. The site-manager's API server returns 202 (request accept) to the front end.
-7. The task workers in the site-manager's repo start working to create the site in the system.
+6. The site-manager's API server returns 202 (request accepted) to the front end.
+7. The related task workers in the site-manager's repo start working together to create the site in the system.
 
-Compared to the synchronous API, this asynchronous API has several changes:
+Compared to the synchronous version, this asynchronous API has several significant changes:
 
-- **The API returns 202 when the request is accepted, which means the site-manager microservice needs to provide another API for checking site status.**
-- **There is no roll back when something fails. Instead, each task worker retries forever until it succeeds and the success of these task workers leads to the success of the API.** The only way to revert site create operations is to invoke a `delete site` API call.
+- **The API returns 202 when the request is accepted, which means the site-manager microservice needs to provide another API for checking the site status.**
+- **There is no roll back when something fails. Instead, when processing a task, a task worker will retry forever until it succeeds. The only way to revert the site createion operations is to invoke a `delete site` API call. The reason for doing this is the `site creation` workflow is already very complicated and injecting roll back to it will make it way more complicated. Instead, we want this API to be more declarative: The API should always try its best to move a new site from the initialize state (`creating`) to the expected state (`running`).**
 
-Apparently the above workflow is not comprehensive enough to explain this API. Now let us go through every part of the API explore more details.
+Apparently the above workflow is not comprehensive enough to explain this API. Now let us go through every part of this workflow to explore more details.
 
 ## Synchronous to asynchronous
 
-You may notice that this API consists of two parts: the synchronous part and the asynchronous part.
+You may notice that this API consists of two parts: the synchronous part and the asynchronous part. The synchronous part includes the steps of performing the permissions check, validating the arguments, creating the site status in the database and distribuiting a `create site metadata` task to trigger the asynchronous part. The synchronous part plays two important roles. Firstly, it acts as a gateway and filters out bad (4**) requests. For example, while validating the arguments, it needs to ensure that the domain that the customer provides has not existed in the system. Secondly it triggers the asynchronous workflow to process the site creation request. **The synchronous part is very fragile as it may fail in any step as there is no retry mechanism to ensure its final success, and the failure of of any step in this part will lead to the failure of the whole API. Therefore, the synchronous part should just do as less work as possible.**
 
-The synchronous part includes the steps to perform the auth check, validate the arguments, create the state and distribute a `create site metadata` task (to trigger the asynchronous workflow). The synchronous part normally plays two important roles. Firstly, it acts as a gateway and filters out those bad (4**) requests. For example, while validating the arguments, it needs to ensure that the domain that the customer provides has not existed in the system. Secondly it triggers the asynchronous workflow to process the request. **The synchronous part is very fragile as the failure of of any step in this part will lead to the failure of the API. Additionally, it may fail in any step as there is no retry mechanism to ensure its final success. Therefore the synchronous part should not do too much work.**
-
-The asynchronous part is the key of this API. It consists of multiple task workers and each worker does one part of job to make its contribution to complete the request. A request is guaranteed to be processed and completed when it reaches the asynchronous part.
+The asynchronous part consists of multiple task workers and each worker processes just one task to move the site create job to the completion state. **A site creation request gains the guarantee to be processed only when it reaches the asynchronous part.**
 
 ## Task Schedulers and Task Workers
 

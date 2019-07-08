@@ -179,7 +179,7 @@ func (r *repo) processSaveSiteMetadataTask(task *cloudtasks.Task) error {
 
 The `repo.processSaveSiteMetadataTask()` method consists of four **sequential** steps and any failure in any step will trigger the retry and it will retry forever until it succeeds. This sounds pretty robust right? The answer is yes and **NO**. The retry mechanism does make the task workers really robust but there is a side affect: Suppose the front end times out. In order to allow the customer retry with the same domain it sends a request to delete the site that is being created. At the same time, the `repo.processSaveSiteMetadataTask()` method triggered from the last API call failed several times but is still retrying. The site deletion API finishes quickly as nothing has been created. Now the `repo.processSaveSiteMetadataTask()` method finally succeeds: it saves the site metadata to the database and distributes the `create site FS` and `create site DB` task. This will cause two problems: 1. The free domain that the customer wants is locked. 2. Some garbage data is created and never gets a chance to be cleaned up. **Based on the above discussion, you can see that these task workers need to be permanently aborted in some scenarios. We need some extra flags to indicate these scenarios and the `site status` object is created for this purpose.**
 
-## The State
+## Status Driven Asynchronous Workflow
 
 The following pseudo code shows how a `site status` object looks like in Go:
 
@@ -230,8 +230,9 @@ func (r *repo) processUpdateSiteStatusTask(task *cloudtasks.Task) error {
 The following pseudo code demonstrates the refactored version of the `repo.processSaveSiteMetadataTask()` method with the `site status` object being used. The major changes are:
 
 - The whole workflow will be aborted if the siteStatus.State is not `creating`. **This allows us to safely abort the creation workflow when the site is being deleting.**
-- The `save site metadata` step will be skipped if `siteState.MetadataReady == true`.
-- It covers all the edge cases.
+- The `save site metadata` step will be skipped if `siteStatus.MetadataReady == true`.
+- With the help `site status` object, each task worker now can have more accurate control on the tasks it is processing.
+- **The workflow becomes status driven: A new site's state is moved from `creating` towards `running` by each task worker in the workflow.**
 
 ```go
 // processSaveSiteMetadataTask processes the tasks of saving site metadata to the system.
@@ -321,9 +322,6 @@ At the end, I hope you enjoy reading this "receipt" _>
 - [Google Cloud Tasks](https://cloud.google.com/tasks/)
 - [Buddha Jumps Over the Wall](https://en.wikipedia.org/wiki/Buddha_Jumps_Over_the_Wall)
 
-
-
-example: 佛跳墙
 
 
 

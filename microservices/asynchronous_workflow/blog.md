@@ -22,7 +22,7 @@ app:
 
 The following picture demonstrates the workflow of the synchronous version this API that was already built before you joined the team:
 
-1. A customer logs in the system and opens the `site creation` page.
+1. A customer logs in the system and opens the site creation page.
 2. The customer inputs the site name, tagline and the name of a free domain he wants, for example, `free-domain-part`.we-host-sites-for-you-and-this-domain-is-too-long.com. Then the customer submits the request and waits by watching an animation which indicates the site is being built.
 3. The front end sends the requests (with 30 seconds timeout) to the site-manager microservice.
 4. The site-manager's API server receives the request, performs the permission checks and calls the site-manager's service to process the request if the checks are passed.
@@ -47,7 +47,7 @@ Now let us take several seconds to "judge" this API: what will happen if a Pod g
 From the above example, you can see that it is not a good idea to process such a complicated and time-consuming job in a synchronous API, as it can fail any time but cannot handle the failure properly. We need to build an robust and transaction-safe asynchronous API to replace the synchronous one. There are several principles we should consider when developing new the API:
 
 1. We can break this complicated job into multiple smaller and simpler tasks.
-2. We can construct an assembly line where each task worker processes one task to move the job toward to the completion state. The success of the job is built on the top of the success of each task.
+2. We can construct an assembly line where each task worker processes one task to move the job toward to the completion state.
 3. Each task worker should have the the retry mechanism to ensure that it can successfully process the tasks it is assigned.
 4. Task worker B should be driven by task worker A if B depends on A.
 5. Some tasks can be executed simultaneously if they do not depend on each other.
@@ -69,13 +69,13 @@ Now assume that [Google Cloud Tasks] is adopted and let us discuss how to utiliz
 
 ## Overview
 
-The following picture shows the workflow of the asynchronous `site creation` API:
+The following picture shows the workflow of the asynchronous site creation API:
 
 [image]
 
 Here is the brief workflow of this API:
 
-1. The customer fills the `site creation` form and submits the request.
+1. The customer fills the site creation form and submits the request.
 2. The front end sends the requests (with 30 seconds timeout) to the site-manager microservice.
 3. The site-manager's API server receives the request, performs the permissions checks and calls the site-manager's service to process the request if the checks are passed.
 4. The site-manager's service delegates the request to the site-manager's repo.
@@ -89,7 +89,7 @@ Here is the brief workflow of this API:
 Compared to the synchronous version, this asynchronous API has several significant changes:
 
 - **The API returns 202 when the request is accepted, which means the site-manager microservice needs to provide another API for checking the site status.**
-- **There is no roll back when something fails. Instead, when processing a task, a task worker will retry forever until it succeeds. The only way to revert the site createion operations is to invoke a `delete site` API call. The reason for doing this is the `site creation` workflow is already very complicated and injecting roll back to it will make it way more complicated. Instead, we want this API to be more declarative: The API should always try its best to move a new site from the initialize state (`creating`) to the expected state (`running`).**
+- **There is no roll back when something fails. Instead, when processing a task, a task worker will retry forever until it succeeds. The only way to revert the site createion operations is to invoke a `delete site` API call. The reason for doing this is the site creation workflow is already very complicated and injecting roll back to it will make it way more complicated. Instead, we want this API to be more declarative: The API should always try its best to move a new site from the initialize state (`creating`) to the expected state (`running`).**
 
 Apparently the above workflow is not comprehensive enough to explain this API. Now let us go through every part of this workflow to explore more details.
 
@@ -113,19 +113,19 @@ Parallel Execution is meant to execute multiple tasks simultaneously to short th
 
 ### Sequential Execution
 
-In this API, the `bootstrap site in DB` task worker needs to be triggered by the `create site DB` task worker. This is because a site can only be bootstrapped (initialized) in the database when its database is created.
+In this API, the `bootstrap site in DB` task needs to be triggered by the `create site DB` task worker. This is because a site can only be bootstrapped (initialized) in the database when its database is created.
 
 ## Task Execution
 
-**The key point of make an asynchronous workflow robust is to make each task worker robust enough to finish its tasks. The success of the workflow is built on the success of every task worker.** Now let us take the `save site metadata` task worker as an example to discuss how to build a robust worker.
+**The key point of make this asynchronous workflow robust is to make each task worker robust enough to finish its tasks. The workflow's success is built on the success of every task worker.** Now let us take the `save site metadata` task worker as an example to see how to build a robust worker.
 
-The following pseudo code shows how to launch the `save site metadata` task workers in Go. The `repo.processSaveSiteMetadataTask()` method is the task handler It can process at most 20 tasks at the same time. The back off configuration specifies that a failed task will be retried in 3 seconds, 3 * 2 seconds, 3 * 2 * 2 seconds... until it succeeds. **A task is only considered successful when the `repo.processSaveSiteMetadataTask()` exits without any error. Any error or any aborted operation will trigger a retry.**
+The following pseudo code shows how to launch the `save site metadata` task workers in Go. The `repo.processSaveSiteMetadataTask()` method is the task handler for processing the `save site metadata` tasks. The back off configuration specifies that a failed task will be retried in 3 seconds, 3 * 2 seconds, 3 * 2 * 2 seconds... until it succeeds. Any error or any aborted operation will trigger a retry. **A task is only considered successfully completed when the `repo.processSaveSiteMetadataTask()` exits without any error.**
 
 ```go
-// LaunchSaveSiteMetadataWorkers launches the workers for saving site metadata to the system.
+// LaunchSaveSiteMetadataWorkers launches the workers for processing the `saving site metadata` works
 func (r *repo) LaunchSaveSiteMetadataWorkers() {
     // Backoff is a time.Duration counter used for retry
-    backoff := &cloudtasks.Backoff{
+    backOff := &cloudtasks.Backoff{
         Min: 3 * time.Second,       // Min is the minimum time to wait before retry.
         Max: 0,                     // Max == 0 means there is no limitation of `wait_time * Factor`.
         Factor: 2,                  // Factor is the multiplying factor for each increment step.
@@ -134,11 +134,11 @@ func (r *repo) LaunchSaveSiteMetadataWorkers() {
 	for i := 0; i < 20; i++ {
 	    // Start 20 workers
 	    w := cloudtasks.NewWorker(
-    		r.QueueSaveSiteMetadata,    // Where to fetch the tasks.
-    		r.processSaveSiteMetadataTask,         // The task handler for processing the tasks of saving a site metadata to the database.
+    		r.QueueSaveSiteMetadata,                        // Where to fetch the tasks.
+    		r.processSaveSiteMetadataTask,                  // The task handler.
     		cloudtasks.WithLeaseDuration(1*time.Minute),    // The timeout for each task.
-    		cloudtasks.WithMaximumTasksPerLease(1),        // The maximum tasks that be fetched by the worker at one time.
-    		cloudtasks.WithHandlerBackoff(SendGAExecReportTaskBackOff),
+    		cloudtasks.WithMaximumTasksPerLease(1),         // The maximum tasks that be fetched by the worker at one time.
+    		cloudtasks.WithHandlerBackOff(backOff),
     	)
     	go w.Work(m.ctx)
 	}
@@ -149,7 +149,7 @@ The following pseudo code shows the major workflow of the `repo.processSaveSiteM
 
 ```go
 // processSaveSiteMetadataTask processes the tasks of saving site metadata to the system.
-// The `task` object contains an ID, a payload which has all the site metadata, and a number to track how many attempts
+// The `task` object contains a task ID, a payload which has all the site metadata, and a number to track how many attempts
 // have been made to complete this task.
 func (r *repo) processSaveSiteMetadataTask(task *cloudtasks.Task) error {
     // Parse the site metadata from the task payload.
@@ -165,35 +165,35 @@ func (r *repo) processSaveSiteMetadataTask(task *cloudtasks.Task) error {
 
     // Distribute a `create site FS` task
     if err = r.distributeCreateSiteFSTask(siteMetadata); err != nil {
-        return fmt.Errorf("error distributing a task to create FS for site %s, err: %s", siteMetadata.ID, err.Error())
+        return fmt.Errorf("error distributing a `create site FS` task for site %s, err: %s", siteMetadata.ID, err.Error())
     }
 
      // Distribute a `create site DB` task
     if err = r.distributeCreateSiteDBTask(siteMetadata); err != nil {
-        return fmt.Errorf("error distributing a task to create DB for site %s, err: %s", siteMetadata.ID, err.Error())
+        return fmt.Errorf("error distributing a `create site DB` task for site %s, err: %s", siteMetadata.ID, err.Error())
     }
 
     return nil
 }
 ```
 
-You can that the `repo.processSaveSiteMetadataTask()` method consists of four sequential steps. Any failure in any step will trigger the retry and it will retry forever until it succeeds. This sounds pretty robust right? The answer is yes and **NO**. The retry mechanism does make task workers really robust but there is a side affect: Suppose the front end times out and send a request to delete the site that is being created so that the customer can retry, while the `repo.processSaveSiteMetadataTask()` method failed several times but is still trying to save the site metadata to the system. The delete API finishes quickly as nothing has been created. Now the `repo.processSaveSiteMetadataTask()` finally succeeds: it saves the site metadata to the database and distributes the `create site FS` and `create site DB` tasks. This causes two problems: 1. The free domain that the customer wants is locked. 2. Some garbage data was created and never gets a chance to be cleaned up. **Based on the above discussion, you can see that these task workers need to abort the work in some scenarios.** But how to do that? We need to introduce a variable, the state, to control this.
+The `repo.processSaveSiteMetadataTask()` method consists of four **sequential** steps and any failure in any step will trigger the retry and it will retry forever until it succeeds. This sounds pretty robust right? The answer is yes and **NO**. The retry mechanism does make the task workers really robust but there is a side affect: Suppose the front end times out. In order to allow the customer retry with the same domain it sends a request to delete the site that is being created. At the same time, the `repo.processSaveSiteMetadataTask()` method triggered from the last API call failed several times but is still retrying. The site deletion API finishes quickly as nothing has been created. Now the `repo.processSaveSiteMetadataTask()` method finally succeeds: it saves the site metadata to the database and distributes the `create site FS` and `create site DB` task. This will cause two problems: 1. The free domain that the customer wants is locked. 2. Some garbage data is created and never gets a chance to be cleaned up. **Based on the above discussion, you can see that these task workers need to be permanently aborted in some scenarios. We need some extra flags to indicate these scenarios and the `site status` object is created for this purpose.**
 
 ## The State
 
-The following pseudo code describes how a state looks like:
+The following pseudo code shows how a `site status` object looks like in Go:
 
 ```go
-type SiteState{
-    Status        string    // Site status, available options: [creating | deleting | running]
-    MetadataReady bool
-    FSReady       bool
-    DBReady       bool
-    Bootstrapped  bool
+type SiteStatus{
+    State         string    // Site state, available options: [creating | deleting | running].
+    MetadataReady bool      // A field used to indicate whether site metadata is ready.
+    FSReady       bool      // A field used to indicate whether site FS is ready.
+    DBReady       bool      // A field used to indicate whether site DB is ready.
+    Bootstrapped  bool      // A field used to indicate whether site is bootstrapped in the database.
 }
 ```
 
-In this Go strcut, the `MetadataReady`, `FSReady`, `DBReady`, `Bootstrapped` is used to indicate whether the corresponding task (e.g. the `save site metadata` task) has been successfully completed. The `Status` field is used to indicate the site status and it can be either `creating`, `running`, `deleting` or `deleted`. The site status can only be `running` when those `*ready` or `*ed` fields are both true. Because of this, now we need another task worker, the `update site status` task worker, to do this job:
+In this Go structure, The `State` field is used to indicate which state a site is in and it can be either `creating`, `running`, `deleting`. The site state should be converted from `creating` to `running` when those `*Ready` or `*ed` fields are both true. Therefore, we need a `update site state` task worker to do this work:
 
 ```go
 // processUpdateSiteStatusTask processes the tasks of updating site status for given site.
@@ -205,31 +205,31 @@ func (r *repo) processUpdateSiteStatusTask(task *cloudtasks.Task) error {
     }
 
     // Fetch site state
-    siteState, err := r.fetchSiteState(siteMetadata.ID)
+    siteStatus, err := r.fetchSiteStatus(siteMetadata.ID)
     if err != nil {
-        return fmt.Errorf("error getting the site state for site %s, err: %s", siteMetadata.ID, err.Error())
+        return fmt.Errorf("error getting the site status for site %s, err: %s", siteMetadata.ID, err.Error())
     }
 
-    if siteState.Status != "creating" {
-        sendAlert("error updating site status to from `creating` to `running` site %s, unexpected site status %s. Abort the whole workflow.",
-            siteMetadata.ID, siteState.Status)
+    if siteStatus.State != "creating" {
+        sendAlert("error updating site state to from `creating` to `running` for site %s, unexpected site state %s. Abort the whole workflow.",
+            siteMetadata.ID, siteStatus.State)
         return nil  // Return nil to abort the whole workflow.
     }
 
-    if siteState.MetadataReady && siteState.FSReady && siteState.DBReady && siteState.Bootstrapped {
-        // Update the site status to `running` if everything is ready
-        if err = r.updateSiteSate(r.stateStatus, "running"); err != nil {
+    if siteStatus.MetadataReady && siteStatus.FSReady && siteStatus.DBReady && siteStatus.Bootstrapped {
+        // Update the site state to `running` if everything is ready
+        if err = r.updateSiteStatus(r.siteStatusState, "running"); err != nil {
             // Return an error to trigger a retry
-            return fmt.Errorf("error updating site status from creating to running for site %s, err %s",
+            return fmt.Errorf("error updating the site state from creating to running for site %s, err %s",
                 siteMetadata.ID, err.Error())
         }
     }
 ```
 
 
-The following pseudo code is the refactored version of the `repo.processSaveSiteMetadataTask()` method. The major changes are:
+The following pseudo code demonstrates the refactored version of the `repo.processSaveSiteMetadataTask()` method with the `site status` object being used. The major changes are:
 
-- The whole workflow will be aborted if the siteState.Status is not `creating`. **This allows us to safely abort the creation workflow when the site is being deleting.**
+- The whole workflow will be aborted if the siteStatus.State is not `creating`. **This allows us to safely abort the creation workflow when the site is being deleting.**
 - The `save site metadata` step will be skipped if `siteState.MetadataReady == true`.
 - It covers all the edge cases.
 
@@ -245,19 +245,19 @@ func (r *repo) processSaveSiteMetadataTask(task *cloudtasks.Task) error {
         return fmt.Errorf("error parsing the payload from the task %s, err: %s", task.ID, err.Error())
     }
 
-    // Fetch site state
-    siteState, err := r.fetchSiteState(siteMetadata.ID)
+    // Fetch site status
+    siteStatus, err := r.fetchSiteStatus(siteMetadata.ID)
     if err != nil {
-        return fmt.Errorf("error getting the site state for site %s, err: %s", siteMetadata.ID, err.Error())
+        return fmt.Errorf("error getting the site status for site %s, err: %s", siteMetadata.ID, err.Error())
     }
 
-    if siteState.Status != "creating" {
-        // Unexpected site status
-        sendAlert("error saving site metadata for site %s, unexpected site status %s. Abort the whole workflow.", siteMetadata.ID, siteState.Status)
+    if siteStatus.State != "creating" {
+        // Unexpected site state
+        sendAlert("error saving site metadata for site %s, unexpected site state %s. Abort the whole workflow.", siteMetadata.ID, siteState.Status)
         return nil  // Return nil to abort the whole workflow.
     }
 
-    if !siteState.MetadataReady {
+    if !siteStatus.MetadataReady {
         // The site metadata has not been saved or `siteState.MetadataReady` did not get successfully updated in the last run.
 
         // Save the metadata to the database.
@@ -265,7 +265,7 @@ func (r *repo) processSaveSiteMetadataTask(task *cloudtasks.Task) error {
             if r.alreadyExistsError(err) {
                 if task.Attempts == 1 {
                     // Site metadata already exists but no attempt has been made. This should never happen.
-                    sendAlert("error saving site metadata for site %s, the site metadata already exists. Abort the whole workflow.", siteMetadata, siteState.Status)
+                    sendAlert("error saving site metadata for site %s, the site metadata already exists unexpectedly. Abort the whole workflow.", siteMetadata, siteState.Status)
                     return nil  // Abort the whole workflow.
                 }
                 // Site metadata is already saved but siteState.MetadataReady is not updated
@@ -278,9 +278,9 @@ func (r *repo) processSaveSiteMetadataTask(task *cloudtasks.Task) error {
 
         // Update the MetadataReady
         updateMetadataReady:
-        if err = r.updateSiteState(r.stateMetadataReady, true); err != nil {
+        if err = r.updateSiteStatus(r.siteStatusMetadataReady, true); err != nil {
             // Return an error to trigger a retry
-            return fmt.Errorf("error updating MetadataReady state for site %s, err %s", siteMetadata.ID, err.Error())
+            return fmt.Errorf("error updating the MetadataReady field for site %s, err %s", siteMetadata.ID, err.Error())
         }
     }
 

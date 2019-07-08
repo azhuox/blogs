@@ -1,55 +1,50 @@
-# Status Driven Asynchronous Workflow in Microservices
+# Status-driven and Task-based Asynchronous Workflow in Microservices
 
 # Preface
 
-When developing a microservice in a container-orchestration system like Kubernetes using a [Kubernetes Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/), there are several things that we need to keep in mind all the time:
+When developing a microservice in a container-orchestration system like Kubernetes, there are several things that we need to keep in mind all the time:
 
-1. Pods are mortal and they won’t be able to survive scheduling failures, node failures or other evictions.
-2. ANYTHING can fail ANY TIME for whatever naughty reasons.
+1. The Pods of the microservice are mortal and they won’t be able to survive scheduling failures, node failures or other evictions.
+2. ANYTHING can fail ANY TIME in the microservice for whatever naughty reasons.
 
-These normally only have very minor impact on those simple operations, like a simple synchronous API which only has one step to create a resource, for example, a user in the system. The worst case is the resource is not created because of the API failure. You can see the API would not create any garbage in the system even if it failed as it is a `all or nothing` operation. However, computer systems are normally complicated sometimes you are very "unlucky" to make some contribution in terms of complexity. Well, do not panic, as the purpose of this blog is to demonstrate how to build an asynchronous task driven system which may help you to deal with complex tasks in a nice way.
+These factors normally only have very minor impact on simple APIs or jobs, for example, a synchronous API which only has one step to create a user in the system. The worst case is user is not created due to the API failure. You can see the APIs or jobs likes this would not create any garbage in the system even if they failed the operations they perform are `all or nothing`. However, computer systems are always complicated and some jobs may involve with multiple operations, multiple databases and multiple sub systems, which makes it difficult to achieve "all or nothing" when processing such jobs in an asynchronous way. The purpose of this blog is to demonstrate how to utilize a status-driven and task-based asynchronous workflow to process complicated jobs.
 
 # An Example
-Suppose you are working on a WordPress-hosting platform and you are required to build an API for customers to create their sites in the system in a Go microservice, say `site-manager`. The following are all the tools you have:
+Suppose you are working on a WordPress-hosting platform and you need to build an API in a Go microservice (say `site-manager`) to allow customers to create sites in the system. The following are the major components of the `site-manager` microservice:
 
 ```
 app:
     site-manager:   # The module for dealing with all the site-related requests.
         apiserver:  # site-manager's API server, which exposes the service through APIs.
         service:    # site-manager's service, which handles all the business logic.
-        repo:       # site-manager's repo, which takes charge of all the database stuff.
-            redisClient:    # Redis client, used to manage sites' metadata in the database (A Redis HA cluster in this case).
-            fsClient:       # Filesystem client, used to manage sites in file system .
-            mysqlClient:    # mysql client, used to manager sites in the database (each site has its onw mysql database).
+        repo:       # site-manager's repo, which takes charge of all the database work.
 ```
 
-The following picture demonstrates the workflow of a synchronous `site creation` API which was built by someone else:
+The following picture demonstrates the workflow of the synchronous version this API that was already built before you joined the team:
 
-1. A customer creates an account in the system and logs in. Well this involves with another complicated workflow. So let us assume everything works well and the customer finishes this within 5 seconds.
-2. The customer goes to the front end and `site creation` page.
-3. The customer inputs the site name, tagline and the name of a free domain he wants, for example, `free-domain-part`.we-host-sites-for-you-and-this-domain-is-too-long.com. Then the customer submits the site create request and starts enjoying an animation which indicates the site is being built, and prepares to be excited about exploring his site.
-4. The front end sends the requests to the site-manager microservice.
-5. The site-manager's API server receives the request, performs the authorization and authentication checks and calls the site-manager's service to process the request if the checks are passed.
-6. The site-manager's service has no business logic to process so it just delegates the request to the site-manager's repo.
-7. The site-manager's repo execute the following steps to process the request:
-    a. It validates all the arguments. It will return an error if some arguments are invalid.
-    b. It generate an UUID as the site ID and saves it with other site metadata to the database. It will abort the operation and return an error if an error occurs.
-    c. It creates the site in the file system. It will abort the operation, trigger rollback and return an error if an error occurs.
-    d. It creates a database for the site. It will abort the operation, trigger rollback return an error if an error occurs.
-    e. It calls a WordPress API to bootstrap the site in the database. It will abort the operation, trigger rollback return an error if an error occurs.
+1. A customer logs in the system and opens the `create a site` page.
+2. The customer inputs the site name, tagline and the name of a free domain he wants, for example, `free-domain-part`.we-host-sites-for-you-and-this-domain-is-too-long.com. Then the customer submits the request and waits by watching an animation which indicates the site is being built.
+3. The front end sends the requests (with 30 seconds timeout) to the site-manager microservice.
+4. The site-manager's API server receives the request, performs the permission checks and calls the site-manager's service to process the request if the checks are passed.
+5. The site-manager's service has no business logic to process so it just delegates the request to the site-manager's repo.
+6. The site-manager's repo executes the following steps to process the request:
+    a. It validates all the arguments and will abort the request if some arguments are invalid.
+    b. It generates an UUID as the site ID and saves it with other site metadata to the database. It will abort the request if an error occurs.
+    c. It then creates the site in the file system. It will abort the request and trigger a rollback routine if an error occurs.
+    d. It creates a database for the site. It will abort the request and trigger a rollback routine if an error occurs.
+    e. It calls a WordPress API to bootstrap the site in the database. It will abort the request and trigger a rollback routine if an error occurs.
     f. It will return the site metadata to the service if all the above steps succeed.
-8. The site-manager's service returns the result to the API server while the API server returns the result back to the front end.
-9. The front end redirects the customer to site's dashboard if the site is successfully created.
-10. The customer starts exploring his site.
+7. The site-manager's service returns the result to the API server and the API server returns the result back to the front end.
+8. The front end redirects the customer to the site's dashboard if the site is successfully created.
 
 
 [image]
 
 # The Problems
-Now let us take several seconds to "judge" this API: what will happen if a Pod gets "murdered" when it is executing this API? What is the next to do when the API successfully saves the site metadata in the database but fails to creates the file in the File System? What if the API fails and the rollback fails as well?  What if it takes a long time to bootstrap the site in the database and causes timeout? The simple answer is the API will fail. The more sophisticated answer is the API will fail and potentially leave some piece of dangling data in the system and the customer may not be happy especially after waiting for like 30 seconds.
+Now let us take several seconds to "judge" this API: what will happen if a Pod gets "murdered" when it is executing this API? What is the next to do to rescue the whole job when the API successfully saves the site metadata in the database but fails to creates the file in the File System? What if the API fails and the rollback fails as well?  What if it takes a long time to bootstrap a site in the database and causes timeout? The simple answer is the API will fail. The more sophisticated answer is the API will fail and potentially leave some piece of dangling data in the system and the customer may not be happy especially after waiting for like 30 seconds.
 
 # An Solution
-From the above example, you can see that it is not a good idea to perform such a complicated and time-consuming task (creating a site in the system) in a synchronous API as it is so fragile in this scenario. We need to build an asynchronous and transaction safe API to replace the synchronous one. There are several principles we should consider when developing such an asynchronous workflow:
+From the above example, you can see that it is not a good idea to process such a complicated and time-consuming job in a synchronous API, as it can fail any time but cannot handle the failure properly. We need to build an robust and transaction-safe API to replace the synchronous one. There are several principles we should consider when developing such an asynchronous workflow:
 
 1. We should break this complicated task into multiple smaller and simpler tasks;
 2. Each task should have the retry mechanism to ensure its final success;
@@ -329,7 +324,6 @@ It reminds me of a famous Chinese cuisine called [Buddha Jumps Over the Wall](ht
 At the end, I hope you enjoy reading this "receipt" _>
 
 # Reference
-- [Kubernetes Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/)
 - [Choosing Between Cloud Tasks and Cloud Pub/Sub](https://cloud.google.com/tasks/docs/comp-pub-sub)
 - [Google Cloud Tasks](https://cloud.google.com/tasks/)
 - [Buddha Jumps Over the Wall](https://en.wikipedia.org/wiki/Buddha_Jumps_Over_the_Wall)

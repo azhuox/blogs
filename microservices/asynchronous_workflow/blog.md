@@ -51,7 +51,7 @@ From the above example, you can see that it is not a good idea to process such a
 3. Each task worker should have the retry mechanism to ensure that it can successfully process the tasks it is assigned.
 4. Task worker B should be driven by task worker A if B depends on A.
 5. Some tasks can be executed simultaneously if they do not depend on each other.
-6. We can create an object in the database for tracking the status of the job.
+6. We can create an object in the database for tracking the status of the resource (e.g. a site) that is being process.
 
 ## Technology Choices: Task Queue v.s. Pub/Sub
 

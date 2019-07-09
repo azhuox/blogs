@@ -55,7 +55,7 @@ From the above example, you can see that it is not a good idea to process such a
 
 ## Technology Choices: Task Queue v.s. Pub/Sub
 
-We need to choose a technology for the system to distribute, store, fetch and execute those tasks. There are two options we have: Task Queue and Pub/Sub. [This article](https://cloud.google.com/tasks/docs/comp-pub-sub) compares the difference between these two technologies using Google Cloud Tasks and Google Cloud Pub/Sub. From my viewpoint, the key differences are:
+We need to choose a technology for the system to distribute, store, fetch and execute those tasks. There are two options we have: Task Queue and Pub/Sub. [This article](https://cloud.google.com/tasks/docs/comp-pub-sub) compares the difference between these two technologies using [Google Cloud Tasks]((https://cloud.google.com/tasks/)) and [Google Cloud Pub/Sub](https://cloud.google.com/pubsub/docs/). From my viewpoint, the key differences are:
 1. Pub/Sub aims to decouple publishers and subscribers. This means when a publisher publishes an event to a topic, he does not care who subscribes the topic and what subscribers will do to handle this event.
 2. Task Queue is aimed at explicit invocation where a publisher (aka. scheduler) retains full control of execution. More specifically the scheduler specifies where each message (task) is delivered and when each task to be delivered, while the workers accept the tasks and process them.
 
@@ -63,7 +63,7 @@ We need to choose a technology for the system to distribute, store, fetch and ex
 
 I think Task Queue is the better choice in this case as some tasks in the workflow of this new API depend on the other ones. Additionally, Task Queue normally provides retry while Pub/Sub does not, and retry is the key to ensure each task to reach the final success. Plus, Task Queue can provide task/message creation deduplication to avoid repeated execution of the same tasks.
 
-Now assume that [Google Cloud Tasks] is adopted and let us discuss how to utilize this technology and the above principles to implement the asynchronous site creation API.
+Now assume that Google Cloud Tasks is adopted and let us discuss how to utilize this technology and the above principles to implement the asynchronous site creation API.
 
 # Task-based Asynchronous Workflow
 
@@ -320,5 +320,6 @@ In the end, I hope you enjoy reading this "receipt" _>
 # Reference
 - [Choosing Between Cloud Tasks and Cloud Pub/Sub](https://cloud.google.com/tasks/docs/comp-pub-sub)
 - [Google Cloud Tasks](https://cloud.google.com/tasks/)
+- [Google Cloud Pub/Sub](https://cloud.google.com/pubsub/docs/)
 - [Buddha Jumps Over the Wall](https://en.wikipedia.org/wiki/Buddha_Jumps_Over_the_Wall)
 

@@ -12,7 +12,7 @@ These factors normally only have a very minor impact on simple APIs or jobs, for
 # An Example
 Suppose you are working on building a WordPress-hosting platform and you need to build an API in a Go microservice (say `site-manager`) to allow customers to create sites in the system. The following are the major components of the `site-manager` microservice that you can use:
 
-```
+```go
 app:
     site-manager:   # The module for dealing with all the site-related requests.
         apiserver:  # site-manager's API server, which exposes the service through APIs.

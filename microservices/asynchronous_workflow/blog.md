@@ -59,7 +59,7 @@ We need to choose a technology for the system to distribute, store, fetch and ex
 1. Pub/Sub aims to decouple publishers and subscribers. This means when a publisher publishes an event to a topic, he does not care who subscribes the topic and what subscribers will do to handle this event.
 2. Task Queue is aimed at explicit invocation where a publisher (aka. scheduler) retains full control of execution. More specifically the scheduler specifies where each message (task) is delivered and when each task to be delivered, while the workers accept the tasks and process them.
 
-**All in all, Pub/Sub emphasizes on decoupling a publisher and its subscribers, while Task Queue is meant to chain a publisher (task scheduler) and its subscribers (task workers) together through messages (tasks). Pub/sub is more suitable for the communication between microservice, while Task Queue is more suitable for constructing asynchronous workflow within a microservice.**
+**All in all, Pub/Sub emphasizes on decoupling a publisher and its subscribers, while Task Queue is meant to chain a publisher (task scheduler) and its subscribers (task workers) together through messages (tasks).**
 
 I think Task Queue is the better choice in this case as some tasks in the workflow of this new API depend on the other ones. Additionally, Task Queue normally provides retry while Pub/Sub does not, and retry is the key to ensure each task to reach the final success. Plus, Task Queue can provide task/message creation deduplication to avoid repeated execution of the same tasks.
 

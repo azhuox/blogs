@@ -43,7 +43,7 @@ The following picture demonstrates the workflow of the synchronous version this 
 # Problems
 Now let us take several seconds to "judge" this API: what will happen if a Pod gets "murdered" when it is executing this API? What is the next to do to rescue the whole job when the API successfully saves the site metadata in the database but fails to create the file in the File System? What if the API fails and the rollback fails as well?  What if it takes a long time to bootstrap a site in the database and causes timeout? The simple answer is the API will fail. The more sophisticated answer is the API will fail and potentially leave some piece of dangling data in the system and the customer may not be happy especially after waiting for like 30 seconds.
 
-# An Solution
+# A Solution
 From the above example, you can see that it is not a good idea to process such a complicated and time-consuming job in a synchronous API, as it can fail any time but cannot handle the failure properly. We need to build a robust and transaction-safe asynchronous API to replace the synchronous one. There are several principles we should consider when developing this new API:
 
 1. We should break this complicated job into multiple smaller and simpler tasks.

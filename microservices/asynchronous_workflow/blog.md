@@ -56,10 +56,8 @@ From the above example, you can see that it is not a good idea to process such a
 ## Technology Choices: Task Queue v.s. Pub/Sub
 
 We need to choose a technology for the system to distribute, store, fetch and execute those tasks. There are two options we have: Task Queue and Pub/Sub. [This article](https://cloud.google.com/tasks/docs/comp-pub-sub) compares the difference between these two technologies using [Google Cloud Tasks]((https://cloud.google.com/tasks/)) and [Google Cloud Pub/Sub](https://cloud.google.com/pubsub/docs/). From my viewpoint, the key differences are:
-1. Pub/Sub aims to decouple publishers and subscribers. This means when a publisher publishes an event to a topic, he does not care who subscribes the topic and what subscribers will do to handle this event.
-2. Task Queue is aimed at explicit invocation where a publisher (aka. scheduler) retains full control of execution. More specifically the scheduler specifies where each message (task) is delivered and when each task to be delivered, while the workers accept the tasks and process them.
-
-**All in all, Pub/Sub emphasizes on decoupling a publisher and its subscribers, while Task Queue is meant to chain a publisher (task scheduler) and its subscribers (task workers) together through messages (tasks).**
+1. Pub/Sub aims to decouple publishers and subscribers. This means when a publisher publishes an event to a topic, he does not care who subscribes the topic and what subscribers will do to handle this event. **In Pub/Sub, events are used to represent messages**
+2. Task Queue is aimed at explicit invocation where a publisher (aka. scheduler) retains full control of execution. More specifically the scheduler specifies where each message (task) is delivered and when each task to be delivered, while the workers accept the tasks and process them. **In Task Queues, tasks are used to represent messages**
 
 I think Task Queue is the better choice in this case as some tasks in the workflow of this new API depend on the other ones. Additionally, Task Queue normally provides retry while Pub/Sub does not, and retry is the key to ensure each task to reach the final success. Plus, Task Queue can provide task/message creation deduplication to avoid repeated execution of the same tasks.
 
@@ -82,7 +80,7 @@ Here is the brief workflow of this API:
 5. The site-manager's repo performs the following steps to process the request:
  a. It validates all the arguments and will return an error if some arguments are invalid.
  b. It creates an object (let us call it `site status`) in the database for tracking the status of the creating site, and will return an error if fails.
- c. It distributes a `create site metadata` task.
+ c. It distributes a `create site` task.
 6. The site-manager's API server returns 202 (request accepted) to the front end.
 7. The related task workers in the site-manager's repo start working together to create the site in the system.
 
@@ -95,7 +93,7 @@ Apparently, the above workflow is not comprehensive enough to explain this API. 
 
 ## Synchronous to asynchronous
 
-You may notice that this API consists of two parts: the synchronous part and the asynchronous part. The synchronous part includes the steps of performing the permission check, validating the arguments, creating the site status in the database and distributing a `create site metadata` task to trigger the asynchronous part. The synchronous part plays two important roles. Firstly, it acts as a gateway and filters out bad (4**) requests. For example, while validating the arguments, it needs to ensure that the domain that the customer provides has not existed in the system. Secondly, it triggers the asynchronous workflow to process the site creation request. **The synchronous part is very fragile as it may fail in any step as there is no retry mechanism to ensure its final success. Moreover, the failure of any step in this part will lead to the failure of the whole API. Therefore, the synchronous part should just do as less work as possible.**
+You may notice that this API consists of two parts: the synchronous part and the asynchronous part. The synchronous part includes the steps of performing the permission check, validating the arguments, creating the site status in the database and distributing a `create site` task to trigger the asynchronous part. The synchronous part plays two important roles. Firstly, it acts as a gateway and filters out bad (4**) requests. **It needs to ensure that only valid site creation requests can reach the asynchronous part.** For example, while validating the arguments, it needs to ensure that the domain that the customer provides has not existed in the system. Secondly, it triggers the asynchronous workflow to process the site creation request. The `create site` task is the key to "open" the asynchronous part. **The synchronous part is very fragile as it may fail in any step as there is no retry mechanism to ensure its final success. Moreover, the failure of any step in this part will lead to the failure of the whole API. Therefore, the synchronous part should do as less work as possible.**
 
 The asynchronous part consists of multiple task workers and each worker processes just one task to move the creating site to the desired state. **A site creation request gains the guarantee to be processed only when it reaches the asynchronous part.**
 
@@ -103,14 +101,10 @@ The asynchronous part consists of multiple task workers and each worker processe
 
 The following picture demonstrates the relationship between each task worker. You can see that a task worker can be a task scheduler for other workers. Moreover, the chain of these workers represents the site creation workflow: an assembly line is constructed by these task workers to process the site creation job.
 
-![Better Dependencies Between Task Workers](https://github.com/azhuox/blogs/blob/master/microservices/asynchronous_workflow/assets/better-task-worker-dependencies.png?raw=true)
-
+![Dependencies Between Task Workers](https://github.com/azhuox/blogs/blob/master/microservices/asynchronous_workflow/assets/task-worker-dependencies.png?raw=true)
 ### Parallel Execution
 
-Parallel Execution is meant to execute multiple tasks simultaneously to short the API execution time. As shown in the following picture, the `create site metadata`, `create site FS` and `create site DB` task can be all distributed in the `repo.CreateSiteAsync()` method. However, there is a potential problem if we realize the API in this way. That is, the site creation process will be out of control when the `repo.CreateSiteAsync()` method successfully triggers the asynchronous workflow by distributing the `create site metadata` task but fails to distribute other tasks. In this case, the `repo.CreateSiteAsync()` method returns an internal error (5**) back to the front end. The customer can retry later but he may not be able to use the same domain. This is because the `save site metadata` task has been triggered in the last API and may have been successfully executed, which means the domain that the customer chooses already exists in the system and cannot be used anymore. Therefore, as shown in the above picture, it is better to let the `repo.CreateSiteAync()` method starts the asynchronous workflow with just one "key": whether the request is accepted depends on whether the `save site metadata` task is successfully distributed. The downside is now the `create site FS` and `create site DB` task has to rely on the `save site metadata` task although they do not logically depend on each other. However, this is totally worth as it makes the system way safer.
-
-![Dependencies Between Task Workers](https://github.com/azhuox/blogs/blob/master/microservices/asynchronous_workflow/assets/task-worker-dependencies.png?raw=true)
-
+Parallel Execution is meant to execute multiple tasks simultaneously to short the API execution time. As shown in the above picture, the `save site metadata`, `create site FS` and `create site DB` task can be executed in parallel. 
 ### Sequential Execution
 
 In this API, the `bootstrap site in DB` task needs to be triggered by the `create site DB` task worker. This is because a site can only be bootstrapped (initialized) in the database when its database is created.
@@ -163,21 +157,11 @@ func (r *repo) processSaveSiteMetadataTask(task *cloudtasks.Task) error {
         return fmt.Errorf("error saving the metadata to the system for site %s, err: %s", siteMetadata.ID, err.Error())
     }
 
-    // Distribute a `create site FS` task
-    if err = r.distributeCreateSiteFSTask(siteMetadata); err != nil {
-        return fmt.Errorf("error distributing a `create site FS` task for site %s, err: %s", siteMetadata.ID, err.Error())
-    }
-
-     // Distribute a `create site DB` task
-    if err = r.distributeCreateSiteDBTask(siteMetadata); err != nil {
-        return fmt.Errorf("error distributing a `create site DB` task for site %s, err: %s", siteMetadata.ID, err.Error())
-    }
-
     return nil
 }
 ```
 
-The `repo.processSaveSiteMetadataTask()` method consists of four **sequential** steps and any step’s failure will trigger the retry and it will retry forever until it succeeds. This seems pretty robust right? The answer is yes and **NO**. The retry mechanism does make the task workers really robust but there is a side effect: Suppose the front end times out. In order to allow the customer retry with the same domain, it sends a request to delete the site that is being created. At the same time, the `repo.processSaveSiteMetadataTask()` method triggered from the last API call failed several times but is still retrying. The site deletion API finishes quickly as nothing has been created. And then the `repo.processSaveSiteMetadataTask()` method finally succeeds: it saves the site metadata to the database and distributes the `create site FS` and `create site DB` task. This will cause two problems: 1. The free domain that the customer wants is locked. 2. Some garbage data is created and never gets a chance to be cleaned up. **Based on the above discussion, you can see that these task workers need to be permanently aborted in some scenarios. We need some extra flags to indicate these scenarios and the `site status` object is created for this purpose.**
+The `repo.processSaveSiteMetadataTask()` method consists of two **sequential** steps and any step’s failure will trigger the retry and it will retry forever until it succeeds. This seems pretty robust right? The answer is yes and **NO**. The retry mechanism does make the task workers really robust but there is a side effect: Suppose the front end times out. In order to allow the customer retry with the same domain, it sends a request to delete the site that is being created. At the same time, the `repo.processSaveSiteMetadataTask()` method triggered from the last API call failed several times but is still retrying. The site deletion API finishes quickly as nothing has been created. And then the `repo.processSaveSiteMetadataTask()` method finally succeeds in saving the site metadata to the database. This will cause two problems: 1. The free domain that the customer wants is locked. 2. Some garbage data is created and never gets a chance to be cleaned up. **Based on the above discussion, you can see that these task workers need to be permanently aborted in some scenarios. We need some extra flags to indicate these scenarios and the `site status` object is created for this purpose.**
 
 ## Status Driven Asynchronous Workflow
 
@@ -287,9 +271,6 @@ func (r *repo) processSaveSiteMetadataTask(task *cloudtasks.Task) error {
 
     // Skip saving site metadata if `siteState.MetadataReady == true`.
 
-    // Distribute a `create site FS` task
-
-    // Distribute a `create site DB` task
     return nil
 }
 ```
@@ -300,7 +281,7 @@ The following picture shows the final workflow:
 
 ## The worst case
 
-Now let us talk about worst case that can happen: The front end times out and sends a site deletion request to delete the site that is being created. Suppose the site-manager's API server and sets `siteStatus.State` to `deleting` and triggers the site deletion workflow while the site is still being created. Any pending task in the site creation workflow will be aborted as the `siteStatus.State` is not `creating` anymore. However, the ongoing tasks may not notice the change of `siteStatus.State`, which may lead to a situation where the site deletion workflow finishes before the site creation workflow. We can alleviate this problem by delaying the execution the `delete site metadata` task (e.g. 3 seconds) after setting `siteState.Status` to `deleting` in site deletion workflow. But this problem may still happen (very unlikely though). What if it still happened?  Well, it is the right time to contact the support...
+Now let us talk about worst case that can happen: The front end times out and sends a site deletion request to delete the site that is being created. Suppose the site-manager's API server and sets `siteStatus.State` to `deleting` and triggers the site deletion workflow while the site is still being created. Any pending task in the site creation workflow will be aborted as the `siteStatus.State` is not `creating` anymore. However, the ongoing tasks may not notice the change of `siteStatus.State`, which may lead to a situation where the site deletion workflow finishes before the site creation workflow. We can alleviate this problem by delaying the execution the `delete site` task (e.g. 3 seconds) after setting `siteState.Status` to `deleting` in site deletion workflow. But this problem may still happen (very unlikely though). What if it still happened?  Well, it is the right time to contact the support...
 
 # Summary
 

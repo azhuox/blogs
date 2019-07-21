@@ -58,5 +58,21 @@ spec:
       protocol: TCP
   selector:
     app: http-server
+---
 
+# Node port
+kind: Service
+apiVersion: v1
+metadata:
+  name: http-server-nodeport
+  namespace: azhuox
+spec:
+  type: NodePort
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP
+  selector:
+    app: http-server
 

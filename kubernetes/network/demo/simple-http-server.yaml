@@ -75,4 +75,23 @@ spec:
       protocol: TCP
   selector:
     app: http-server
+---
+
+
+# External Service
+kind: Service
+apiVersion: v1
+metadata:
+  name: http-server-ext-svc
+  namespace: azhuox
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP
+  selector:
+    app: http-server
+  type: LoadBalancer
+
 

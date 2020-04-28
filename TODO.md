@@ -3,10 +3,18 @@
 ## Golang
     
 * Interface in Go
+- What is interface
+- Go interface v.s. Java interface
+- Where do you declare Go interface?
 
 * Embedding in Go
+- What is embedding?
+- Embedding is composition, not inheritance
+
 
 * Scopes in Go
+- Introduction
+- Scopes based on folders, not on structs
 
 * Domain Driven
     

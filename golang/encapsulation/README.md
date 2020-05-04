@@ -20,7 +20,7 @@ Suppose we want to define a simple counter without consideration of race conditi
 ```go
 package encapsulationexample
 
-// Counter - a simpler counter.
+// Counter - a simple counter.
 type Counter struct {
     counter int
 }
@@ -86,9 +86,9 @@ import "fmt"
 // CounterDemo shows "private" field of `Counter` struct cannot be directly accessed by another package.
 func CounterDemo2() {
 	c := NewCounter()
-	// This won't work! It would cause a compiler error.
+	// This would cause a compiler error as private field `counter` is not visible in this package.
 	c.counter = 5
-	// It will print out "counter value: 0".
+	// It will print out "counter value: 0" if you comment the above statement.
 	fmt.Print("counter value: %d\n", c.N())
 }
 ```
@@ -96,14 +96,83 @@ func CounterDemo2() {
 [intertering gif]
 
 **From the above example, you can see: unlike Java or other object-oriented programming languages that controls visibility of names on class level, 
-Go sets up encapsulation on package level.** The work around to fix this is to define a `Counter` interface:
+Go sets up encapsulation on package level.** The work around to fix this is to define a `Counter` interface and use it everywhere. In other words,
+Go interface can help you achieve information hiding on interface/struct level.
 
 ```go
+package encapsulationexample
 
+// Counter defines interface that a counter instance needs to implement.
+type Counter interface{
+	N() int
+	Increment()
+	Reset()
+}
 
+// SimpleCounter - a simple counter.
+type SimpleCounter struct {
+    counter int
+}
+
+func NewSimpleCounter() *SimpleCounter {
+    return &SimpleCounter{
+        counter: 0,
+    }
+}
+
+func (c *SimpleCounter) N() int { return c.counter }
+
+func (c *SimpleCounter) Increment() { c.counter++ }
+
+func (c *SimpleCounter) Reset() { c.counter = 0 }
+
+// CounterDemo shows how to use `Counter` interface.
+func CounterDemo() {
+	var c Counter
+	c := NewSimpleCounter()
+	// This would cause a compiler error as `Counter` interface does not have `counter` field.
+	c.counter = 5
+	// It will print out "counter value: 0" if you comment the above statement.
+	fmt.Print("counter value: %d\n", c.N())
+}
 ```
 
+## Encapsulation in Internal Packages
 
+The above encapsulation rules can also be applied to [Go internal packages](https://docs.google.com/document/d/1e8kOo3r51b2BWtTs_1uADIA5djfXhPT36s6eHVRIvaU/edit). In addition, the following rule is also adopted in internal packages:
+
+- "An import of a path containing the element “internal” is disallowed if the importing code is outside the tree rooted at the parent of the “internal” directory." - [Design Document of Go Internal Package](https://docs.google.com/document/d/1e8kOo3r51b2BWtTs_1uADIA5djfXhPT36s6eHVRIvaU/edit)
+
+Here is an example:
+
+```
+foo:    -> repo 
+    cmd:
+        server:
+            main.go
+    internal:
+        module:
+            module1:
+                service:
+                    service.go
+                    internal:
+                        repo:
+                            repo.go
+        pkg:
+            pkg1:
+                code.go
+            pkg2:
+                code.go
+    pkg:
+        pkg1:
+            code.go
+```
+
+In this case:
+
+- Packages in `foo/internal/*` directory can be imported by packages in the directory rooted at `foo/` no matter how deep their directory layouts are. For example, `food/cmd/server` package can import `foo/internal/pkg/pkg2` package.
+- The deepest `internal` dominates encapsulation rules when there are multiple `internals` in a package's import path. For example,
+ `foo/internal/module1/service/internal/repo` package can only be imported by packages in the directory tree rooted at `foo/internal/module1/service/` (other than `foo/`), which only is `foo/internal/module1/service` package in this case. 
 
 
 Unlike other object-oriented programming languages like Java, Go has very specific rules about encpsulaiton:

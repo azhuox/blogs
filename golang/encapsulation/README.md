@@ -10,8 +10,8 @@ has very specific rules about encapsulation.
 ## Encapsulation Rules in Go
 
 Go has only one rule to set up encapsulation: capitalized identifiers are exported from the package where they are defined
-and un-capitalized ones are not. A field or method of a struct is exported only when the names of the field/method and struct
-are both capitalized (AND condition).
+and un-capitalized ones are not. **A field/method of a struct/interface is exported only when the names of the field/method and struct/interface
+are both capitalized (AND condition).**
 
 Let's go through an example to the difference between Java and Go in terms of encapsulation.
 
@@ -137,6 +137,7 @@ func CounterDemo() {
 }
 ```
 
+
 ## Encapsulation in Internal Packages
 
 The above encapsulation rules can also be applied to [Go internal packages](https://docs.google.com/document/d/1e8kOo3r51b2BWtTs_1uADIA5djfXhPT36s6eHVRIvaU/edit). In addition, the following rule is also adopted in internal packages:
@@ -175,24 +176,98 @@ In this case:
  `foo/internal/module1/service/internal/repo` package can only be imported by packages in the directory tree rooted at `foo/internal/module1/service/` (other than `foo/`), which only is `foo/internal/module1/service` package in this case. 
 
 
-Unlike other object-oriented programming languages like Java, Go has very specific rules about encpsulaiton:
-1. based on package
+## Use cases
 
-Example:
-    In java
-    In Go
+The following are some "interesting" examples about Go encapsulation.
 
-2. Internal package
+### Public Data Structs with Private Fields.
 
-- Use Cases of Go Encapsulation
+```go
+package user
+import (
+    "context"
+    "time"
 
-- Public Data Structs
+)
 
-- Private Data Structs
+// CreateUserRequest - request body for creating a user.
+type CreateUserRequest struct {
+	Name string
+	Email string
+	createdAt time.Time
+}
 
-- Public Object Structs
+// CreateUser - creates a user in the database.
+func (r *repo) CreateUser(ctx context.Context, req CreateUserRequest) error {
+	req.createdAt = time.Now().UTC()
+	...
+}
+```
 
-- Private Object Structs
+### Private Interface with Private Methods.
+
+```go
+package user
+import "context"
+
+// helper defines helper functions that are used in this package.
+type helper interface {
+	func doSomething(ctx context.Context) error
+}
+
+type helperDefault struct {}
+
+func (h *defaultHelper) doSomething(ctx context.Context) error {
+	...
+	return nil
+}
+
+type helperMock struct {}
+
+// doSomething - mock of `doSomething` method.
+func (h *helperMock) doSomething(ctx context.Context) error {
+	...
+	return nil
+}
+```
+
+
+### Private Data Structs with Public Fields.
+```go
+package meetingevents
+
+import "encoding/json"
+
+type meetingEndedEvent struct {
+	MeetingID string `json:"meeting_id"`
+	HostID string `json:"host_id"`
+	Duration int `json:"duration"`
+	...
+}
+
+func (s *SVCDefault) ProcessEvents(rawEvent *RawEvent) error {
+	switch rawEvent.Type {
+	case "meeting-ended":
+		event := meetingEndedEvent{}
+		_ = json.Unmarshal([]byte(rawEvent.String()), &event)
+		...
+	}
+}
+
+```
+
+### Private Object Structs with Public Fields.
+
+
+## Summary
+
+In summary, Go has following encapsulation rules:
+
+- Go controls visibility of names at package level. A field/method of a struct/interface is exported only when the names of the field/method and struct/interface
+are both capitalized (AND condition).
+- An import of a path containing the element “internal” is disallowed if the importing code is outside the tree rooted at the parent of the “internal” directory.
+- A field must be capitalized if it wants to be JSON marshal/unmarshal, not matter whether the struct it belongs to is capitalized or not.
+
 
 ## Reference
 

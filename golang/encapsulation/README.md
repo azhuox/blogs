@@ -97,7 +97,7 @@ func CounterDemo2() {
 ![Shocking Cat](https://github.com/azhuox/blogs/blob/master/golang/encapsulation/assets/shocking-cat.gif?raw=true)
 
 **From the above example, you can see: unlike Java or other object-oriented programming languages that control visibility of names on class level,
-Go controls encapsulation on package level.** The work around to fix this is to define a `Counter` interface and use it to replace usage of `SimpleCounter` struct. In this way, only the `SimpleCounter` struct can access its private fields and methods (see the following example).
+Go controls encapsulation at package level.** The work around to fix this is to define a `Counter` interface and use it to replace usage of `SimpleCounter` struct. In this way, only the `SimpleCounter` struct can access its private fields and methods (see the following example).
 In other words, Go interface can help you achieve information hiding on interface/struct level.
 
 ```go

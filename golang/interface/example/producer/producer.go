@@ -1,5 +1,7 @@
 package producer
 
+import "io"
+
 type Product struct {
 }
 
@@ -17,7 +19,7 @@ func (p *defaultProducer) Produce() *Product {
 
 
 type DefaultProducer struct {
-
+	reader io.Reader
 }
 
 func (p *DefaultProducer) Produce() *Product {

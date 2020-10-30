@@ -7,7 +7,26 @@
 
 ## Interface in Go
 - Behaviour contract
+- Implicit implementation
 - Not like Java.
+
+## Why Interface
+
+- Abstraction
+- Dependency Injection.
+
+## Arguments about Interface
+
+### Return Structs or Return Interface?
+
+### Define Interface in Consumer Side or Provider Side?
+
+### Summary
+
+
+
+
+ 
 
 ## Use Cases of Go Interface
 

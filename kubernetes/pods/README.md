@@ -5,7 +5,11 @@ What is included in this blog:
 - The life cycle of a Pod
 
 # Kubernetes Pods
-A [Kubernetes (K8s) Pod](https://kubernetes.io/docs/concepts/workloads/pods/pod/) is the smallest deployable unit in K8s. It is essentially is a group of one or more containers (e.g. Docker containers) which share the computing resources including storage and network and each container can request to have its own CPU and memory resources. As shown in the following picture, a Pod is very similar to an application specific "host" running one or more "processes" (containers). These "processes" work together to provides some kind of service.
+A [Kubernetes (K8s) Pod](https://kubernetes.io/docs/concepts/workloads/pods/pod/) is the smallest deployable unit in K8s.
+It is essentially is a group of one or more containers (e.g. Docker containers) which share the computing resources including storage and network
+and each container can request to have its own CPU and memory resources.
+
+As shown in the following picture, a Pod is very similar to an application specific "host" running one or more "processes" (containers). These "processes" work together to provides some kind of service.
 
 ![Hosts V.S. Pods](https://github.com/azhuox/blogs/blob/master/kubernetes/pods/assets/host_vs_pod.png?raw=true)
 
@@ -47,7 +51,7 @@ spec:
           name: user-msvc
           key: mysql-host
     volumeMounts:
-      - name: named-pipe
+      - name: ndatadog-data
         mountPath: "/var/log/user-msvc"
     requests:
       cpu: 100m
@@ -68,14 +72,14 @@ spec:
   - name: datadog-agent
     image: gcr.io/path/to/monitor:1.0.0
     volumeMounts:
-      - name: named-pipe
+      - name: datadog-data
         mountPath: "/var/log/monitor"
     requests:
       ...
 
   # Storage
   volumes:
-  - name: datadog-dir
+  - name: datadog-data
     emptyDir: {}
 ---
 

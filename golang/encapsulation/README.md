@@ -267,7 +267,7 @@ func (s *EventService) ProcessEvents(rawEvent *RawEvent) error {
   case "meeting-ended":
      event := meetingEndedEvent{}
      _ = json.Unmarshal([]byte(rawEvent.String()), &event)
-     ...
+     ...go
   }
 }
 

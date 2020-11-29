@@ -3,7 +3,7 @@
 This blog talks about the basic knowledge of Kubernetes [Pods](https://kubernetes.io/docs/concepts/workloads/pods/). 
 But before exploring Kubernetes Pods, let us first go through what a [Docker container](https://docs.docker.com/get-started/overview/) is as it is the major container technology that we use to run our applications.
 
-# Docker Containers
+## Docker Containers
 
 Docker is an open platform that allows you to package and run applications in a loosely isolated environment called a container. 
 A Docker container is a runnable instance of a Docker image and a Docker read-only template for creating a Docker container. 
@@ -34,7 +34,7 @@ From the file, you can see a minimal Docker file can be as simple as only contai
 With this Docker file, our continuous integration (CI) tool is able to build and push a new image to `foo` service's Docker image warehouse 
 every time when there is a new change in `foo` service’s repo. Then with this Docker image, we can run and deploy the `foo` service as a containerized application in Kubernetes.
 
-# Pod Overview
+## Pod Overview
 
 A Pod is the smallest deployable unit in Kubernetes. It consists of one or more containers. 
 These containers have their own CPU and memory resources but need to share other resources, including storage and network. 
@@ -43,7 +43,7 @@ These "processes" work together to construct a containerized workload or service
 
 ![Hosts V.S. Pods](https://github.com/azhuox/blogs/blob/master/kubernetes/pods/assets/host_vs_pod.png?raw=true)
 
-# Use of Pods
+## Use of Pods
 
 The following example demonstrates how to use a K8s Pod to construct a single-replica microservice. 
 This Pod consists of three containers: the `user-usvc` container has all the microservice's business logic, the `cloudsql-proxy` container proxies all the MySQL requests to a Google Cloud SQL instance, 
@@ -190,7 +190,7 @@ Moreover, the `user-msvc` container opens the `443` port for processing incoming
 All in all, this example demonstrates that a Pod is like an application-specific “host“ that coordinates one or more “processes“ (containers) to work together to provide some kind of service.
 
 
-# What is Next
+## What is Next
 
 It is not a good idea to directly utilize K8s Pods to run applications as Pods are mortal. They cannot be resurrected when they are killed for whatever reason. 
 Because of this, you should use K8s Deployments to run stateless applications and K8s StatefulSets to run stateful applications.

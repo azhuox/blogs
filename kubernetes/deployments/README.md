@@ -1,5 +1,8 @@
 # Kubernetes Deployments
 
+## prerequisites
+I recommend you know the basic knowledge Kubernetes Pods before reading this blog. You can check [this doc](https://kubernetes.io/docs/concepts/workloads/pods/pod/) for details about Kubernetes Pods.
+
 ## What is a Deployment
 Normally, when working with Kubernetes, rather than directly managing a group of replicated Pods, 
 you would like to leverage higher-level Kubernetes objects & workloads to manage those Pods for you. 
@@ -20,7 +23,7 @@ ReplicaSet ensures that a specific number of pod replicas are running at a given
 Deployments are built on the top of ReplicaSets. A Deployment essentially is a set of ReplicaSets. It rolls out a new ReplicaSet with the desired number of Pods and smoothly terminates Pods in the old ReplicaSet when a rolling update occurs. In other words, a Deployment performs the rolling update by replacing the current ReplicaSet with a new one. You can check this doc for more details about rolling update or rolling back Deployments.
 
 
-## Deployment Example
+## A Deployment Example
 
 The following is an example of a Deployment configuration for creating a Nginx server with three replicated Pods.
 
@@ -80,7 +83,7 @@ You can also put [labels and annotations](https://kubernetes.io/docs/reference/k
 
 ### Deployment Spec and Pod Template
 
-The `spec` field defines the specification of this Deployment and the `spec.template` defines the Pod template for sre-reporting Pods.
+The `spec` field defines the specification of this Deployment and the `spec.template` defines a template for creating the Pods this Deployment manages.
 
 
 ### Pod Selector

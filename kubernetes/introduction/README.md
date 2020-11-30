@@ -3,7 +3,7 @@
 ## Preface
 
 This series of blogs is an introduction to Kubernetes (k8s) explaining its basic concepts and commonly-used components 
-for building and deploying applications in Kubernetes. The purpose of this series of blogs is for you quickly learn the basic
+for building and deploying applications in Kubernetes. The purpose of this series of blogs is for you to quickly learn the basic
 knowledge of Kubernetes in an hour. However, I highly recommend you check [official Kubernetes documentation](https://kubernetes.io/docs/home/)
 if you want to dive deeply into Kubernetes. 
 

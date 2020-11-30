@@ -126,7 +126,7 @@ spec:
 ## What Is Next
 
 Check [this blog](https://github.com/azhuox/blogs/blob/master/kubernetes/pv_pvc/README.md) if you are curious about
-how to set up persistent storage in Kubernetes.
+how Kubernetes provides persistent storage for your applications.
 
 ## Reference
 

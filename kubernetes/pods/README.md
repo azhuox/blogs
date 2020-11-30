@@ -7,7 +7,8 @@ But before exploring Kubernetes Pods, let us first go through what a [Docker con
 
 Docker is an open platform that allows you to package and run applications in a loosely isolated environment called a container. 
 A Docker container is a runnable instance of a Docker image and a Docker read-only template for creating a Docker container. 
-In other words, we need to construct a Docker image before running a Docker container. Take the `foo` service as an example, here is the Docker file for creating its Docker images:
+In other words, we need to construct a Docker image before running a Docker container. 
+Take the service `foo` as an example, here is the Docker file for creating its Docker images:
 
 ```
 # Suppose the CI tool already build the `foo` service as a executable binary file and saved it in `./go-server`.
@@ -24,15 +25,12 @@ ENTRYPOINT ["/usr/bin/server"]
 From the file, you can see a minimal Docker file can be as simple as only containing the following directives:
 
 * FROM directive specifies alpine:3.5, which essentially is a mini Linux system, as its parent container.
-
 * RUN apk update… updates container’s dependencies.
-
-* COPY command copies an executable binary file that contains all the business logic of the sre-reporting service from ./go-server to /user/bin/server.
-
+* COPY command copies an executable binary file that contains all the business logic of the service `foo` from ./go-server to /user/bin/server.
 * ENTRYPOINT tells Docker to executes /user/bin/server as this container’s entry point.
 
-With this Docker file, our continuous integration (CI) tool is able to build and push a new image to `foo` service's Docker image warehouse 
-every time when there is a new change in `foo` service’s repo. Then with this Docker image, we can run and deploy the `foo` service as a containerized application in Kubernetes.
+With this Docker file, our continuous integration (CI) tool is able to build and push a new image to the service `foo's` Docker image warehouse 
+every time when there is a new change in the service `foo's` repo. Then with this Docker image, we can run and deploy the service `foo` as a containerized application in Kubernetes.
 
 ## Pod Overview
 
@@ -46,8 +44,8 @@ These "processes" work together to construct a containerized workload or service
 ## Use of Pods
 
 The following example demonstrates how to use a K8s Pod to construct a single-replica microservice. 
-This Pod consists of three containers: the `user-usvc` container has all the microservice's business logic, the `cloudsql-proxy` container proxies all the MySQL requests to a Google Cloud SQL instance, 
-while the `datadog-agent` container sends the logs to datadog server.
+This Pod consists of three containers: the container `user-usvc` has all the microservice's business logic, the container `cloudsql-proxy` proxies all the MySQL requests to a Google Cloud SQL instance, 
+while the container `datadog-agent` sends the logs to datadog server.
 
 ```yaml
 
@@ -157,55 +155,53 @@ spec:
 ---
 ```
 
-The following picture shows the topology of the `user-msvc` Pod in Kubernetes.
+The following picture shows the topology of the Pod `user-msvc` in Kubernetes.
 
 ![Topology of user-msvc Pod](https://github.com/azhuox/blogs/blob/master/kubernetes/pods/assets/user_msvc_topology.png?raw=true)
 
 From the above Pod configuration, we can see that:
 
-* The `user-msvc` ConfigMap and `user-msvc` Secret are created for storing configurations and sensitive data. 
+* The ConfigMap `user-msvc` and Secret `user-msvc` are created for storing configurations and sensitive data. 
 
-* The `.spec.containers` field defines all the containers of the Pod. For each container, you need to configure which image it is going to run, 
+* The field `spec.containers` defines all the containers of the Pod. For each container, you need to configure which image it is going to run, 
 all the environmental variables and computing resources it needs, including storage, CPU, memory, and network.
 
-* The `.spec.volumes` field specifies the shared storage resources for all the containers of the Pod. 
+* Containers within the same Pod share the network, which means these containers reach each other through 127.0.0.1. However, a port can only be exclusively occupied by a container. In this case, the container `cloudsql-proxy` exposes itself by opening the port `3306`. Therefore, the container `user-msvc` is able to connect to it through `127.0.0.1:3306`. 
+Moreover, the container `user-msvc` opens the `443` port for processing incoming requests from the container `user-msvc` [Kubernetes LoadBalancer Service](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer).
+
+* The field `spec.volumes` specifies the shared storage resources for all the containers of the Pod. 
 Kubernetes supports many types of Volumes. you can check [this doc](https://kubernetes.io/docs/concepts/storage/volumes/) for more details about Kubernetes Volumes.
 
 In this example, an [emptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir) volume is created when the Pod is created. 
-The volume is respectively mounted to the `/var/log` and `/var/log/monitor` path in the `user-msvc` and `monitor` container. 
-Both containers share the data in this Volume. Because of this, the `user-msvc` container can create a file called `/var/log/user-msvc-error.log` 
-and writes logs to this file, while the `datadog-agent` container can read the logs from the `/var/log/monitor/user-msvc-error.log` file and then sends them to datadog.
+The volume is respectively mounted to the path `/var/log` and `/var/log/monitor` in the container `user-msvc` and `monitor`. 
+Both containers share the data in this Volume. Because of this, the container `user-msvc` can create a file called `/var/log/user-msvc-error.log` 
+and writes logs to this file, while the container `datadog-agent` can read the logs from the file `/var/log/monitor/user-msvc-error.log` and then sends them to datadog.
 
-The `user-msvc` Secret is also used as Volume in this example. Then it is mounted in `/etc/user-msvc/secret` in the `user-msvc` container and `/etc/datadog-agent/secret` in the `datadog-agent` container.
+The Secret `user-msvc` is also used as Volume in this example. 
+Then it is mounted in the path `/etc/user-msvc/secret` in the container `user-msvc` and the path `/etc/datadog-agent/secret` in the container `datadog-agent`.
 When a Secret is mounted into a directory in a container, each of its data will be created as an individual file in that directory. Moreover, a Secret Volume should be read only.
 
 A ConfigMap can be directly used in a Pod's environmental variables or can be used as a Volume as well.  
 
-* Containers within the same Pod share the network, which means these containers reach each other through 127.0.0.1. However, a port can only be exclusively occupied by a container. 
-
-In this case, the `cloudsql-proxy` container exposes itself by opening the port `3306`. Therefore, the `user-msvc` container is able to connect to it through `127.0.0.1:3306`. 
-Moreover, the `user-msvc` container opens the `443` port for processing incoming requests from the `user-msvc` [Kubernetes LoadBalancer Service](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer).
-
-
 All in all, this example demonstrates that a Pod is like an application-specific “host“ that coordinates one or more “processes“ (containers) to work together to provide some kind of service.
 
 
-## What is Next
+## What Is Next
 
 It is not a good idea to directly utilize K8s Pods to run applications as Pods are mortal. They cannot be resurrected when they are killed for whatever reason. 
 Because of this, you should use K8s Deployments to run stateless applications and K8s StatefulSets to run stateful applications.
 
-Check [this blog](https://www.aaronzhuo.com/kubernetes-deployment/) if you are curious about K8s Deployments
+Check [this blog](https://www.aaronzhuo.com/kubernetes-deployment/) if you are curious about how to utilize K8s Deployments to run stateful applications.
 
-Check [this blog](https://www.aaronzhuo.com/kubernetes-statefulsets/) if you are curious about K8s StatefulSets.
+Check [this blog](https://www.aaronzhuo.com/kubernetes-statefulsets/) if you are curious about ho to utilize K8s StatefulSets to run stateless applications.
 
 
-Reference:
+## Reference
 
 - [Kubernetes Pods](https://kubernetes.io/docs/concepts/workloads/pods/)
 - [Docker Containers](https://docs.docker.com/get-started/overview/)
 - [Kubernetes Volumes](https://kubernetes.io/docs/concepts/storage/volumes/)
-- [Kubernetes EmptyDir]((https://kubernetes.io/docs/concepts/storage/volumes/#emptydir))
+- [Kubernetes EmptyDir](https://kubernetes.io/docs/concepts/storage/volumes/#emptydir)
 - [Kubernetes LoadBalancer Service](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer)
 - [Kubernetes Deployments](https://www.aaronzhuo.com/kubernetes-deployments/)
 - [Kubernetes StatefulSets](https://www.aaronzhuo.com/kubernetes-statefulsets/)

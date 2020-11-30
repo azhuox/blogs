@@ -1,15 +1,15 @@
 # Kubernetes StatefulSets
 
 ## prerequisites
-I recommend you know the basic knowledge Kubernetes Pods before reading this blog. You can check [this doc](https://kubernetes.io/docs/concepts/workloads/pods/pod/) for details about Kubernetes Pods.
+I recommend you know the basic knowledge of Kubernetes Pods before reading this blog. You can check [this doc](https://kubernetes.io/docs/concepts/workloads/pods/pod/) for details about Kubernetes Pods.
 
 ## What Is A StatefulSet
 
 StatefulSet is a Kubernetes object designed to manage stateful applications. 
-Like a Deployment, a StatefulSet scales up a set of pods to a desired number that you define in a config file. 
-Pods in a StatefulSet runs the same containers defined in the `Pod spec` inside the `StatefulSet spec`.  
+Like a Deployment, a StatefulSet scales up a set of pods to the desired number that you define in a config file. 
+Pods in a StatefulSet runs the same containers defined in the `Pod spec` inside the `StatefulSet spec`. 
 Unlike a Deployment, every Pod of a StatefulSet owns a sticky and stable identity. 
-A StatefulSet also provides the guarantee about ordered deployment, deletion, scaling and rolling updates for its Pods.
+A StatefulSet also provides the guarantee about ordered deployment, deletion, scaling, and rolling updates for its Pods.
 
 ## A StatefulSet Example
 A complete StatefulSet consists of two components:
@@ -17,18 +17,18 @@ A complete StatefulSet consists of two components:
 - A StatefulSet object used to create and manage its Pods. 
 
 The following example demonstrates how to use a StatefulSet to create a ZooKeeper Server. 
-Please note that the following `StatefulSet Spec` is simplified for demo purpose. 
-You can check [this yaml file](https://github.com/kubernetes/contrib/blob/master/statefulsets/zookeeper/zookeeper.yaml "The StatefulSet Configuration for Setting Up A ZooKeeper Service") for the complete configuration of this ZooKeeper Service.
+Please note that the following `StatefulSet Spec` is simplified for demo purposes. 
+You can check [this YAML file](https://github.com/kubernetes/contrib/blob/master/statefulsets/zookeeper/zookeeper.yaml "The StatefulSet Configuration for Setting Up A ZooKeeper Service") for the complete configuration of this ZooKeeper Service.
 
 ### ZooKeeper Service
 
-A [Zookeeper service](https://zookeeper.apache.org/) is a distributed coordination system for distributed applications.  
-It allows to you read, write data and observe data updates. 
+A [Zookeeper service](https://zookeeper.apache.org/) is a distributed coordination system for distributed applications. 
+It allows you to read, write data, and observe data updates. 
 Data is stored and replicated in each ZooKeeper server and these servers work together as a ZooKeeper Ensemble. 
 
 The following picture shows the overview of a ZooKeeper service with five ZooKeeper servers. 
 You can see each server in a ZooKeeper service has a stable network ID for potential leader elections. 
-Moreover, one of the ZooKeeper servers needs to be selected as leader for managing the service topology and processing write requests. 
+Moreover, one of the ZooKeeper servers needs to be selected as a leader for managing the service topology and processing write requests. 
 StatefulSets is suitable for running such an application as it guarantees uniqueness for Pods.
 
 ![A five-nodes Zookeeper Service](https://raw.githubusercontent.com/azhuox/blogs/master/kubernetes/statefulsets/assets/zookeeper-svc-in-statefulset.jpeg "A five-nodes Zookeeper Service")  
@@ -135,16 +135,16 @@ spec:
 
 #### Metadata
 
-The `metadata` field contains metadata of this Stateful Set, which includes the name of this Stateful Set and the Namespace it belongs to. 
+The field `metadata` contains metadata of this StatefulSet, which includes the name of this StatefulSet and the Namespace it belongs to. 
 You can also put [labels and annotations](https://kubernetes.io/docs/reference/kubernetes-api/labels-annotations-taints/) in this field.
 
 #### Stateful Set Spec and Pod Template
 
-The `spec` field defines the specification of this Stateful Set and the `spec.template` defines a template for creating the Pods this Stateful Set manages.
+The field `spec` defines the specification of this StatefulSet and the field `spec.template` defines a template for creating the Pods this StatefulSet manages.
 
 #### Pod Selector
 
-Like a Deployment, a StatefulSet uses the `spec.selctor` field to find which Pods to manage. 
+Like a Deployment, a StatefulSet uses the field `spec.selctor` to find which Pods to manage. 
 You can check [this doc](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#labelselector-v1-meta) for details about the usage of Pod Selector.  
 
 #### Replica
@@ -153,7 +153,7 @@ The field `spec.replica` specifies the desired number of Pods for the StatefulSe
 like ZooKeepers, based on the consideration of the efficiency of some operations. 
 For example, a ZooKeeper service marks a data write complete only when more than half of its servers send an acknowledgment back to the leader. 
 Take a six pods ZooKeeper service as an example. The service remains available as long as at least four servers (ceil(6/2 + 1)) are available, 
-which means you service can tolerate the failure of two servers. Nevertheless, it can still tolerate two-servers failure when the server number is lowered down to five. 
+which means your service can tolerate the failure of two servers. Nevertheless, it can still tolerate two-servers failure when the server number is lowered down to five. 
 Meanwhile, this also improves write efficiency as now it only needs 3 servers' acknowledgment to complete a write request. 
 Therefore, having the sixth server, in this case, does not give you any additional advantage in terms of write efficiency and server availability.
 
@@ -162,10 +162,10 @@ A StatefulSet Pod is assigned a unique ID (aka. Pod Name) from its Headless Serv
 This ID sticks to the Pod during the life cycle of the StatefulSet. 
 The pattern of constructing ID is `${statefulSetName}-${ordinal}`. For example, Kubernetes will create five Pods with five unique IDs `zk-0`, `zk-1`, `zk-2`, `zk-3` and `zk-4` for the above ZooKeeper service. 
 
-The ID of a StatefulSet Pod is also its hostname. The sub domain takes the form 
+The ID of a StatefulSet Pod is also its hostname. The subdomain takes the form 
 `${podID}.${headlessServiceName}.{$namespace}.svc.cluster.local` where `cluster.local` is the cluster domain. 
-For example, the sub domain of the first ZooKeeper Pod is `zk-0.zk-hs.default.svc.cluster.local`. 
-It is recommended to use a Stateful Pod's sub domain other than its IP to reach the Pod as the sub domain is unique within the whole cluster.
+For example, the subdomain of the first ZooKeeper Pod is `zk-0.zk-hs.default.svc.cluster.local`. 
+It is recommended to use a Stateful Pod's subdomain other than its IP to reach the Pod as the subdomain is unique within the whole cluster.
 
 #### podManagementPolicy
 
@@ -173,7 +173,7 @@ You can choose whether to create/update/delete a StatefulSet's Pod in order or i
 by specifying `spec.podManagementPolicy == OrderedReady` or `spec.podManagementPolicy == Parallel`. 
 `OrderedReady` is the default setting and it controls the Pods to be created with the order `0, 1, 2, ..., N` and to be deleted with the order `N, N-1, ..., 1, 0`. 
 In addition, it has to wait for the current Pod to become Ready or terminated prior to terminating or launching the next Pod. 
-`Parallel` launches or terminates all the Pods simultaneously. It does not rely on previous Pod's state to lunch or terminate the next Pod.
+`Parallel` launches or terminates all the Pods simultaneously. It does not rely on the state of the current Pod to lunch or terminate the next Pod.
 
 #### updateStrategy
 
@@ -189,22 +189,22 @@ thus delaying the rolling update of the next Pod and giving other running Pods e
 
 #### Pod Affinity
 
-Like a Deployment, the ideal scenario of running a StatefulSet is distribute its Pods to different nodes in different zones and 
+Like a Deployment, the ideal scenario of running a StatefulSet is to distribute its Pods to different nodes in different zones and 
 avoid running multiple Pods in the same node. The  `spec.template.spec.affinity` field allows you to specify node affinity and inter-pod affinity (or anti-affinity) for the SatefulSet Pods. 
 You can check [this doc](https://kubernetes.io/docs/concepts/configuration/assign-pod-node/) for details about using node/pod affinity in Kubernetes
 
 #### volumeClaimTemplates
 
-The `spec.volumeClaimTemplates` filed is used to provide stable storage for StatefulSets. 
-As shown in the following picture, the `spec.volumeClaimTemplates` field creates a Persistent Volume Claim (`datadir-zk-0`), a Persistent Volume (`pv-0000`), 
-and a 10 GB standard persistent disk for Pod `zk-0`. These storage settings have the same life cycle with the StatefulSet, which means the storage for a Stateful Pod 
+The field `spec.volumeClaimTemplates` is used to provide stable storage for StatefulSets. 
+As shown in the following picture, the field `spec.volumeClaimTemplates` creates a Persistent Volume Claim (`datadir-zk-0`), a Persistent Volume (`pv-0000`), 
+and a 10 GB standard persistent disk for Pod `zk-0`. These storage settings have the same life cycle as the StatefulSet, which means the storage for a Stateful Pod 
 is stable and persistent. Any StatefulSet Pod will not lose its data whenever it is terminated and recreated.
 
 ![The Persistent Storage in the Zookeeper Service](https://raw.githubusercontent.com/azhuox/blogs/master/kubernetes/statefulsets/assets/pvs-zookeeper-service.jpeg)
 
-## What is Next
+## What Is Next
 
-
+Check [this blog](https://azhuox.medium.com/kubernetes-services-1f4d3e43db67) if you are curious about how Kubernetes provides load balancing for your applications through Kubernetes Services.
 
 # Reference
 - [Pods in Kubernetes](https://kubernetes.io/docs/concepts/workloads/pods/pod/)

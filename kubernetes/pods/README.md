@@ -191,9 +191,9 @@ All in all, this example demonstrates that a Pod is like an application-specific
 It is not a good idea to directly utilize K8s Pods to run applications as Pods are mortal. They cannot be resurrected when they are killed for whatever reason. 
 Because of this, you should use K8s Deployments to run stateless applications and K8s StatefulSets to run stateful applications.
 
-Check [this blog](https://www.aaronzhuo.com/kubernetes-deployment/) if you are curious about how to utilize K8s Deployments to run stateful applications.
+Check [this blog](https://github.com/azhuox/blogs/blob/master/kubernetes/deployments/README.md) if you are curious about how to utilize K8s Deployments to run stateful applications.
 
-Check [this blog](https://www.aaronzhuo.com/kubernetes-statefulsets/) if you are curious about ho to utilize K8s StatefulSets to run stateless applications.
+Check [this blog](https://github.com/azhuox/blogs/blob/master/kubernetes/statefulsets/README.md) if you are curious about ho to utilize K8s StatefulSets to run stateless applications.
 
 
 ## Reference

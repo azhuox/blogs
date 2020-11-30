@@ -79,9 +79,9 @@ When working with Kubernetes, you need to know how to utilize its CLI tool `kube
 
     - `kubectl get pod <your_pod> -o yaml` prints out details of given Pod in yaml format. 
 
-## What is Next
+## What Is Next
 
-Check this blog if you are curious about [Kubernetes Pods]()
+Check this blog if you are curious about the minimal deploy-able unit in Kubernetes: [Kubernetes Pods](https://github.com/azhuox/blogs/blob/master/kubernetes/pods/README.md).
 
 ## Reference:
 

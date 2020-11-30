@@ -137,7 +137,7 @@ You can check [this doc](https://kubernetes.io/docs/concepts/configuration/assig
 
 ## What Is Next
 
-You can check [this blog](https://azhuox.medium.com/kubernetes-services-42a8b971e5ed) if you are curious about how to run stateful applications in Kubernetes.
+You can check [this blog](https://github.com/azhuox/blogs/blob/master/kubernetes/statefulsets/README.md) if you are curious about how to run stateful applications in Kubernetes.
 
 
 ## Reference

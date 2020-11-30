@@ -232,6 +232,11 @@ This feature is well supported in many built-in volume providers, such as GCE-PD
 A cluster administrator can make this feature available for cluster users by setting `allowVolumeExpansion == true` in the configurations of the Storage Classes. 
 You can check [this blog](https://kubernetes.io/blog/2018/07/12/resizing-persistent-volumes-using-kubernetes/) for more details.
 
+## What Is Next
+
+This is the last blog of my series of blogs about the introduction to Kubernetes. Now you should have brief idea about what is Kubernetes.
+I highly recommend you check [the official Kubernetes documentation](https://kubernetes.io/docs/home/) if you want to dive deeply into Kubernetes.
+
 ## Reference
 
 - [Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)

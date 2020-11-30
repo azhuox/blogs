@@ -123,9 +123,9 @@ spec:
               number: 9000
 ```
 
-## What is Next
+## What Is Next
 
-Check [this blog](https://azhuox.medium.com/persistent-volumes-and-persistent-volume-claims-1b2f1fbdda43) if you are curious about
+Check [this blog](https://github.com/azhuox/blogs/blob/master/kubernetes/pv_pvc/README.md) if you are curious about
 how to set up persistent storage in Kubernetes.
 
 ## Reference

@@ -204,7 +204,7 @@ is stable and persistent. Any StatefulSet Pod will not lose its data whenever it
 
 ## What Is Next
 
-Check [this blog](https://azhuox.medium.com/kubernetes-services-1f4d3e43db67) if you are curious about how Kubernetes provides load balancing for your applications through Kubernetes Services.
+Check [this blog](https://github.com/azhuox/blogs/tree/master/kubernetes/services) if you are curious about how Kubernetes load balances traffic to your applications through Kubernetes Services.
 
 # Reference
 - [Pods in Kubernetes](https://kubernetes.io/docs/concepts/workloads/pods/pod/)

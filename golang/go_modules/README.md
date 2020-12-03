@@ -132,8 +132,8 @@ The first problem is how to release `v2` or higher Major versions. Go utilizes t
 
 The second problem is we need to figure out whether to consider the conversion from Go package(s) to a Go module a breaking change or not. If so, we need to upgrade the Major version using [Semantic Versioning](https://semver.org/). If not, we need to decide what versions we need to release. I prefer to just release the latest version of the package(s) listed in the `CHANGELOG.md` file for the following reasons:
 
-- **The conversion from Go package(s) to a Go module is not a breaking change as the package(s) can still work with older versions of Go even if the package(s) are converted to a module. So it does not make sense to upgrade the Major version for this kind of change.**
-- **The conversion from Go package(s) to a Go module does not add any new feature or fix any bug. So upgrading the Minor or Patch version in this case does not make sense either.**
+1. **The conversion from Go package(s) to a Go module is not a breaking change as the package(s) can still work with older versions of Go even if the package(s) are converted to a module. So it does not make sense to upgrade the Major version for this kind of change.**
+2. **The conversion from Go package(s) to a Go module does not add any new feature or fix any bug. So upgrading the Minor or Patch version in this case does not make sense either.**
 
 
 Now let us come back to the module example and release its latest version. Here is what I did:

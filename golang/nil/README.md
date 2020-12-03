@@ -1,3 +1,5 @@
+# Nil in Go
+
 ## What is `nil` in Go
 `nil` in Go has several meanings:
 - It represents "null" in Go. This means two things: 1. It does not have type. 2. Its value is "null".
@@ -63,7 +65,7 @@ func main() {
 }
 ```
 
-These code will fail to compile as they are trying to compare `nil` values of two different types.
+This code will fail to compile as they are trying to compare `nil` values of two different types.
 
 
 ### Two `nil` Values of The Same Type May Not Be Comparable
@@ -79,7 +81,8 @@ func main() {
 }
 ```
 
-Take `var sb = (map[string]bool)(nil) == (map[string]bool)(nil)` as an example, the reason why two `nil` values of a same type (`map[string]bool`) are not comparable is because Go does not support comparison in slice, map and function types. **You can see that we are comparing two values of a non-comparable type in this case. That is why it fails.**
+Take `var sb = (map[string]bool)(nil) == (map[string]bool)(nil)` as an example, 
+the reason why two `nil` values of the same type (`map[string]bool`) are not comparable is because Go does not support comparison in slice, map, and function types. **You can see that we are comparing two values of a non-comparable type in this case. That is why it fails.**
 
 But the following code works and results are true:
 
@@ -106,7 +109,7 @@ func main() {
 }
 ```
 
-### Be Careful in `nil` Comparision When Interface Values Are Involved
+### Be Careful in `nil` Comparison When Interface Values Are Involved
 
 The following code will not cause any compiler failure but the result is `false` other than `true`.
 
@@ -155,9 +158,9 @@ func write(out io.Writer) {
 ```
 
 Explanation:
-- **An interface value equals to `nil` only when its type and value are both `nil`.** In example, `w` is an `io.Writer` interface value with `{type: *bytes.Buffer, value: nil}` after the `w = b` assignment. Therefore, `w == nil` is `false` as it carries `*bytes.Buffer` other than `nil` as its concrete dynamic type.
+- **An interface value equals to `nil` only when its type and value are both `nil`.** In this example, `w` is an `io.Writer` interface value with `{type: *bytes.Buffer, value: nil}` after the `w = b` assignment. Therefore, `w == nil` is `false` as it carries `*bytes.Buffer` other than `nil` as its concrete dynamic type.
 
 ## Summary
-- `nil` is and a pre-declared identifier which can be used to represent the zero values of some types in Go.
+- `nil` is and a pre-declared identifier that can be used to represent the zero values of some types in Go.
 - Be careful when using `nil` in comparison, especially when interface values are involved. You need to understand what you are comparing: types, or values, or both.
-- `(a thing)(nil)` may not equal to `nil`, depends on what that thing is (a pointer or an interface). This means Go is a strong-type language and it also applies to `nil` even though `nil` itself does not have default type (**sarcasm**).
+- `(a thing)(nil)` may not equal to `nil`, depends on what that thing is (a pointer or an interface). This means `nil` is strong-typed even though `nil` itself does not  default type (**sarcasm**).

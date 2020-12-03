@@ -171,7 +171,7 @@ foo:    -> repo
 
 In this case:
 
-- Packages defined in `foo/internal/` folder can be imported by packages defined in the directory rooted at `foo/` no matter how deep their directory layouts are. For example, `foo/cmd/server` package can import the `foo/internal/pkg/pkg2` package.
+- Packages defined in `foo/internal/` folder can be imported by packages defined in a directory rooted at `foo/` no matter how deep their directory layouts are. For example, `foo/cmd/server` package can import the `foo/internal/pkg/pkg2` package.
 - The deepest `internal` dominates encapsulation rules when there are multiple `internals` in a package's import path. For example,
 `foo/internal/module1/service/internal/repo` package can only be imported by packages in the directory tree rooted at `foo/internal/module1/service/` (other than `foo/`), which is only `foo/internal/module1/service` package in this case.
 
@@ -189,7 +189,7 @@ it makes sense to define the `repository` package under the internal folder of `
 
 ## Some Interesting Study cases
 
-Mystery of Go encapsulation rules sometimes can make you confused and lost. For example, here are some "interesting" examples about Go encapsulation.
+The mystery of Go encapsulation rules sometimes can make you confused and lost. For example, here are some "interesting" examples of Go encapsulation.
 
 ### Public Data Structs with Private Fields.
 
@@ -247,7 +247,7 @@ func (h *helperMock) doSomething(ctx context.Context) error {
 
 You can define a private interface with some private methods for the purpose of **dependency injection** other than **abstraction**. For example, `helper` interface in the above example makes the `defaultHelper.doSomething` method replace-able by the `helpMock.doSomething` method.
 
-Should a private interface own some public methods? No, it SHOULD NOT as public methods in a private interface will never get a chance to be exported. 
+Should a private interface own some public methods? No, it SHOULD NOT as public methods in a private interface never get a chance to be exported. 
 
 ### Private Data Structs with Public Fields.
 ```go

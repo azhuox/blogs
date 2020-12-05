@@ -1,4 +1,4 @@
-# Interface In Go
+# Interfaces In Go
 
 ## Preface
 
@@ -91,6 +91,37 @@ type Manager interface{
 	Writer
 }
 ```
+
+**Accept Interfaces but Return Structs**
+
+We all agree on accepting interfaces other than concrete implementation as it is the key to follow [SOLID principles](https://en.wikipedia.org/wiki/SOLID) (e.g. [Dependency Inversion Principle](https://en.wikipedia.org/wiki/Dependency_inversion_principle))
+and realize some design patterns (e.g. [Decorator Pattern](https://en.wikipedia.org/wiki/Decorator_pattern)) in Go. However, there is no solid answer about returning interfaces or structs. 
+
+The benefit of returning structs is to give consumers freedom to define interfaces on their side. Take the above `user.Manager` as an example, 
+consumers can define the interface `user.Manager` based on their need in their own packages if we define `user.Manager` as a struct other than an interface in the package `user`. 
+
+The benefit of returning interfaces it to free consumers from defining interfaces on their own, as long as the returning interfaces provide strong abstraction. Moreover, some design patterns,
+such as [Factory Method Pattern](https://en.wikipedia.org/wiki/Factory_method_pattern), require to return interfaces other than concrete implementation. For example, the method [aes.newCipher](https://github.com/golang/go/blob/dcd3b2c173b77d93be1c391e3b5f932e0779fb1f/src/crypto/aes/cipher_asm.go#L33-L54)
+returns the interface [cipher.Block](https://github.com/golang/go/blob/dcd3b2c173b77d93be1c391e3b5f932e0779fb1f/src/crypto/cipher/cipher.go#L15) with different structs in different circumstances:
+
+```go
+func newCipher(key []byte) (cipher.Block, error) {
+	if !supportsAES {
+		return newCipherGeneric(key)
+	}
+	n := len(key) + 28
+	c := aesCipherAsm{aesCipher{make([]uint32, n), make([]uint32, n)}}
+    ...
+
+	if supportsAES && supportsGFMUL {
+		return &aesCipherGCM{c}, nil
+	}
+	return &c, nil
+}
+```
+
+Normally, the smaller the interface，the stronger the abstraction. The stronger the abstraction, the easier to be accepted to return interfaces. 
+
 
 **“Go interfaces generally belong in the package that uses values of the interface type, not the package that implements those values”**
 

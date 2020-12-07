@@ -1,6 +1,6 @@
 # Interfaces In Go
 
-![Big Endian v.s. Little Endian](https://github.com/azhuox/blogs/blob/master/golang/interface/assets/little-end-big-end.jpg?raw=true)
+![Big Endian v.s. Little Endian](https://github.com/azhuox/blogs/blob/master/golang/interface/assets/little-end-big-end.jpeg?raw=true)
 
 ## Preface
 
